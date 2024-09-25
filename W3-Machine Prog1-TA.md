@@ -58,11 +58,11 @@ coverBackgroundUrl: /res/image/cover/cover_03.jpg
   }
 </style>
 
----
+<!-- ---
 
 # 目录
 
-<Toc columns="3" minDepth="1"></Toc>
+<Toc columns="3" minDepth="1"></Toc> -->
 
 ---
 layout: center
@@ -735,7 +735,7 @@ changxinhai@stu.pku.edu.cn
 <p class="text-gray-40">
   <font size = '3'>
     Reference: [Weicheng Lin]'s presentation.<br>
-    Reference: [Arthals]'s template.
+    <!-- Reference: [Arthals]'s template. -->
   </font>
 </p>
 
