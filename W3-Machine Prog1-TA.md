@@ -153,7 +153,7 @@ backgroundSize: 25em 80%
 - 特殊指令 **movabsq** 和 **cltq**
   - movabsq将64位立即数传送至寄存器
   - cltq将%eax有符号扩展到%rax
-
+- 计算机的底层是很机械的，所以很多指令都可执行，但要**注意匹配**
 
 ---
 
@@ -380,7 +380,7 @@ layout: center
 
 # 作业讲评
 
-![image-20240925102708962](./res/image/slides.assets/image-20240925102708962.png){.w-130}
+![image-20240925200156052](./res/image/slides.assets/image-20240925200156052.png){.w-130}
 
 
 

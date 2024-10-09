@@ -10,14 +10,9 @@ package.json
 # deployment files #
 
 # Unreleased files #
-W4-TA.md
-W5-TA.md
-W6-TA.md
-W7-TA.md
-W8-TA.md
-W9-TA.md
-W10-TA.md
+W?-TA.md
 
 # Resource files #
 ICS-Note.md
 ICS-Exercise.md
+res/mydoc/
