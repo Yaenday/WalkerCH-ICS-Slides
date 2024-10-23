@@ -505,7 +505,7 @@ SEQ、PIPE的具体实现图、HCL代码都需要详细掌握
 
 ---
 
-# PIPE->PIPE
+# PIPE- ->PIPE
 
 
 ## 处理冒险
@@ -894,13 +894,13 @@ layout: center
 
 <div>
 
-![image-20241014230234910](./res/image/slides.assets/image-20241014230234910.png){.w-75}
+![image-20241014230234910](./res/image/slides.assets/image-20241014230234910.png){.w-65}
 
 </div>
 
 <div>
 
-![image-20241014230239344](./res/image/slides.assets/image-20241014230239344.png){.w-75}
+![image-20241014230239344](./res/image/slides.assets/image-20241014230239344.png){.w-65}
 
 </div>
 
@@ -1203,12 +1203,12 @@ layout: center
 
 <div>
 
-![image-20241022233831272](./res/image/slides.assets/image-20241022233831272.png){.w-65}
+![image-20241022233831272](./res/image/slides.assets/image-20241022233831272.png){.w-63}
 
 </div>
 <div>
 
-![image-20241022233849320](./res/image/slides.assets/image-20241022233849320.png){.w-70}
+![image-20241022233849320](./res/image/slides.assets/image-20241022233849320.png){.w-65}
 
 
 </div>
@@ -1216,10 +1216,32 @@ layout: center
 
 
 
-![image-20241022233906606](./res/image/slides.assets/image-20241022233906606.png)
+![image-20241022233906606](./res/image/slides.assets/image-20241022233906606.png){.w-65}
 
 </div>
 </div>
+
+---
+
+# E14
+
+<div grid="~ cols-2 gap-0">
+
+<div>
+
+
+![image-20241023102645617](./res/image/slides.assets/image-20241023102645617.png){.w-70}
+
+
+</div>
+
+<div>
+
+![image-20241023102707231](./res/image/slides.assets/image-20241023102707231.png){.w-65}
+
+</div>
+</div>
+
 
 
 
@@ -1250,8 +1272,78 @@ layout: center
 </div>
 </div>
 
+---
+
+# E15
+
+<div grid="~ cols-2 gap-0">
+
+<div>
 
 
+![image-20241023102554433](./res/image/slides.assets/image-20241023102554433.png)
+
+
+</div>
+
+<div>
+
+![image-20241023102609361](./res/image/slides.assets/image-20241023102609361.png){.w-80}
+
+</div>
+</div>
+
+
+
+
+
+---
+
+
+
+# E16
+
+
+<div grid="~ cols-3 gap-2">
+
+<div>
+
+![image-20241023091221902](./res/image/slides.assets/image-20241023091221902.png)
+
+</div>
+<div>
+
+![image-20241023091238133](./res/image/slides.assets/image-20241023091238133.png)
+
+</div>
+<div>
+
+![image-20241023091304981](./res/image/slides.assets/image-20241023091304981.png)
+
+</div>
+</div>
+
+---
+
+# E16
+
+<div grid="~ cols-2 gap-0">
+
+<div>
+
+
+
+![image-20241023102131229](./res/image/slides.assets/image-20241023102131229.png){.w-85}
+
+
+</div>
+
+<div>
+
+![image-20241023102254400](./res/image/slides.assets/image-20241023102254400.png)
+
+</div>
+</div>
 
 
 
