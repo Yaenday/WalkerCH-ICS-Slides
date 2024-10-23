@@ -83,22 +83,8 @@ before we start
 - 对于 SEQ、PIPE 的实现、线是怎么连接的，信号是怎么产生、在什么时候产生的，都需要完全理解、背诵
 - 对于冲突的解决，也需要完全理解、背诵
 - 参考资料： [CMU / HCL Descriptions of Y86-64 Processors](https://csapp.cs.cmu.edu/3e/waside/waside-hcl.pdf)，Y86-64 指令集，HCL 完整版，第四章 Arch 复习必备
-- 建议大家多开一个 https://slide.huh.moe/05/ 方便听课时回翻。
-- ~~建议变身医学牲，全背就完了。~~ 符号很多，推荐理解性记忆。
-- 本次备课花了我大量时间，希望大家好好听讲。
-- 看书！看书！看书！
-
----
-
-# 小班回课给分相关
-
-score
-
-考虑到某些同学会想要内卷（虽然我不太鼓励大家卷这个，卷考试会更香，但确实小班给分会有优秀率限制），所以明确一下我的评分标准：
-
-1. 我不太会给同学们太低的分，除非你写的实在过于草率
-2. 我希望回课的同学至少能够认真掌握自己回课的部分
-3. 为了大家的理解，以及我的身心健康，我希望大家不要大片 copy 大班 PPT 或者书（这部分内容可以有，但必然和我本来就要有的内容会相同很多），更多的给出一些像我一样的便于理解的 tips、一两句话说明一个精髓的点、某些看完书不容易关注的犄角旮旯的考试知识点啥的这些对大伙更实用的东西，具体可以参考我已经公布的我制作的 Slide
+- 建议基于可以搜集到的所有资料，用自己的方式好好整理一遍
+- 关于小班课程安排的事项，以及下周的回课安排【暂】
 
 ---
 
@@ -1051,13 +1037,13 @@ data hazard resolution: forwarding
 <div grid="~ cols-2 gap-12">
 <div>
 
-![forward_1](./res/image/slides.assets/forward_1.png){.mx-auto.h-80}
+![forward_1](./res/image/slides.assets/forward_1.png){.mx-auto.h-60}
 
 </div>
 
 <div>
 
-![forward_2](./res/image/slides.assets/forward_2.png){.mx-auto.h-80}
+![forward_2](./res/image/slides.assets/forward_2.png){.mx-auto.h-60}
 
 </div>
 </div>
@@ -3359,6 +3345,30 @@ ICS 去年小班同学默写盛况
 
 ![image-20241016200935096](./res/image/slides.assets/image-20241016200935096.png){.w-200}
 
+
+---
+
+# Lab: Arch(?)
+
+—— Absolutely New！You can find more resources to help you fix it.
+
+- [LY86-64 simulator](https://www.ly86-64.com/home)
+
+![image-20241023183628144](./res/image/slides.assets/image-20241023183628144.png){.w-150}
+
+- [Y86 Syntax Highlighter - Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=abhinavk99.y86-vscode)
+
+
+
+---
+
+# Lab: Arch(?)
+
+—— Absolutely New！You can find more resources to help you fix it.
+
+- [Debugger: sshwy/y86-pipe-rs: Y86 Pipeline Simulator Rust Implementation (github.com)](https://github.com/sshwy/y86-pipe-rs)
+
+  ![95b993d1b9bf934230da5392e936e5b](./res/image/slides.assets/95b993d1b9bf934230da5392e936e5b.png){.w-150}
 
 
 ---
