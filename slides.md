@@ -6,10 +6,10 @@ theme: academic
 # background: https://cover.sli.dev
 highlighter: shiki
 # some information about your slides (markdown enabled)
-title: 05-Arch-Sequential-and-Pipelined
+title: 08-Cache
 info: |
   ICS 2024 Fall Slides
-  Presented by Arthals
+  Presented by WalkerCH
 titleTemplate: '%s'
 # apply unocss classes to the current slide
 class: text-center
@@ -21,17 +21,34 @@ transition: fade-out
 # enable MDC Syntax: https://sli.dev/features/mdc
 mdc: true
 layout: cover
-coverBackgroundUrl: ./res/image/slides.assets/cover.jpg
+coverBackgroundUrl: /res/image/cover/cover_08.jpg
+
 ---
 
-# 处理器架构：顺序与流水线 {.font-bold}
+# Processor Arch {.font-bold}
 
-2110306206 预防医学&信双 卓致用{.!text-gray-200}
+<p class="text-gray-100">
+<font size = '5'>
+  13 元培数科 常欣海
+</font>
+</p>
 
 <div class="pt-12  text-gray-1">
   <span @click="$slidev.nav.next" class="px-2 py-1 rounded cursor-pointer" hover="bg-white bg-opacity-10">
     Here we go! <carbon:arrow-right class="inline"/>
   </span>
+</div>
+
+
+<div class="abs-br m-6 flex gap-2">
+  <button @click="$slidev.nav.openInEditor()" title="Open in Editor" class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">
+    <carbon:edit />
+  </button>
+  <a href="https://github.com/Yaenday/WalkerCH-ICS-Slides
+  " target="_blank" alt="GitHub" title="Open in GitHub"
+    class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">
+    <carbon-logo-github />
+  </a>
 </div>
 
 <style>
@@ -40,2003 +57,1279 @@ coverBackgroundUrl: ./res/image/slides.assets/cover.jpg
   }
 </style>
 
----
-
-# 前言
-
-before we start
-
-- 本章内容极多，需要至少仔细阅读 CS:APP 两遍
-- 对于 SEQ、PIPE 的实现、线是怎么连接的，信号是怎么产生、在什么时候产生的，都需要完全理解、背诵
-- 对于冲突的解决，也需要完全理解、背诵
-- 参考资料： [CMU / HCL Descriptions of Y86-64 Processors](https://csapp.cs.cmu.edu/3e/waside/waside-hcl.pdf)，Y86-64 指令集，HCL 完整版，第四章 Arch 复习必备
-- 建议大家多开一个 https://slide.huh.moe/05/ 方便听课时回翻。
-- ~~建议变身医学牲，全背就完了。~~ 符号很多，推荐理解性记忆。
-- 本次备课花了我大量时间，希望大家好好听讲。
-- 看书！看书！看书！
 
 ---
 
-# 小班回课给分相关
+# 随机访问存储器
 
-score
+Random Access Memory, RAM
 
-考虑到某些同学会想要内卷（虽然我不太鼓励大家卷这个，卷考试会更香，但确实小班给分会有优秀率限制），所以明确一下我的评分标准：
+- 速度非常快
+- **断电后数据不可恢复**
+- 常用于运行时产生数据的存储
 
-1. 我不太会给同学们太低的分，除非你写的实在过于草率
-2. 我希望回课的同学至少能够认真掌握自己回课的部分
-3. 为了大家的理解，以及我的身心健康，我希望大家不要大片 copy 大班 PPT 或者书（这部分内容可以有，但必然和我本来就要有的内容会相同很多），更多的给出一些像我一样的便于理解的 tips、一两句话说明一个精髓的点、某些看完书不容易关注的犄角旮旯的考试知识点啥的这些对大伙更实用的东西，具体可以参考我已经公布的我制作的 Slide
+### 随机访问{.mb-4.mt-6}
 
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-处理一条指令通常包含以下几个阶段：
-
-1. 取指（Fetch）
-2. 译码（Decode）
-3. 执行（Execute）
-4. 访存（Memory）
-5. 写回（Write Back）
-6. 更新PC（PC Update）
+- 指在存储设备中，可以以任意顺序访问存储的数据，而不需要按照特定的顺序逐个读取。
+- 这种访问方式使得数据的读取和写入速度更快，尤其是在需要频繁访问不同位置的数据时。
 
 ---
 
-# Y86-64 的顺序实现
+# 随机访问存储器
 
-sequential implementation
+Random Access Memory, RAM
 
 <div grid="~ cols-2 gap-12">
 <div>
 
-### 1. 取指（Fetch）
+### SRAM
 
-**操作**：取指阶段从内存中读取指令字节，地址由程序计数器 (PC) 的值决定。
+Static RAM，静态随机访问存储器
 
+- 速度最快（仅次于寄存器文件）
+- 抗噪音干扰能力强，采用 **双稳态结构**{.text-sky-5}
+- 价格最高（晶体管更多，造价更高）
+- 常用于高速缓存
 
+![sram](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/sram.png){.h-40.mx-auto}
 
-<div text-sm>
-
-读出的指令由如下几个部分组成：
-
-- `icode`：指令代码，指示指令类型，是指令字节的低 4 位
-- `ifun`：指令功能，指示指令的子操作类型，是指令字节的高 4 位（不指定时为 0）
-- `rA`：第一个源操作数寄存器（可选）
-- `rB`：第二个源操作数寄存器（可选）
-- `valC`：常数，Constant（可选）
-
-</div>
-
-<div text-sm text-gray-5 mt-4>
-
-各个不同名称的指令一般具有不同的 `icode`，但是也有可能共享相同的 `icode`，然后通过 `ifun` 区分。
-
-</div>
 </div>
 
 <div>
 
-![fetch](./res/image/slides.assets/fetch.png)
+### DRAM
+
+Dynamic RAM，动态随机访问存储器
+
+- 对干扰非常敏感
+- **需要不断地刷新以保持稳定性**{.text-sky-5}
+- 速度慢于 SRAM，价格更低
+- 多用于主存（内存）
+
+![dram](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/dram.png)
 
 </div>
 </div>
 
 ---
 
-# Y86-64 的顺序实现
+# DRAM 的读取
 
-sequential implementation
+DRAM read
 
-<div grid="~ cols-2 gap-12">
-<div>
-
-### 1. 取指（Fetch）
-
-**操作**：取指阶段从内存中读取指令字节，地址由程序计数器 (PC) 的值决定。
-
-<div text-sm>
-
-- `ifun` 在除指令为 `OPq`，`jXX` 或 `cmovXX` 其中之一时都为 0
-- `rA`，`rB` 为寄存器的编码，取值为 0 到 F，每个编码对应着一个寄存器。注意当编码为 F 时代表无寄存器。
-- `rA`，`rB` 并不是每条指令都有的，`jXX`，`call` 和 `ret` 就没有 `rA` 和 `rB`，这在 HCL 中通过 `need_regids` 来控制
-- `valC` 为 8 字节常数，可能代表立即数（`irmovq`），偏移量（`rmmovq` `mrmovq`）或地址（`call` `jmp`）。`valC` 也不是每条指令都有的，这在 HCL 中通过 `need_valC` 来控制
-
-
-</div>
-</div>
-
-<div>
-
-![fetch](./res/image/slides.assets/fetch.png)
-
-</div>
-</div>
-
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-### 2. 译码（Decode）
-
-**操作**：译码阶段从寄存器文件读取操作数，得到 `valA` 和 / 或 `valB`。
-
-一般根据上一阶段得到的 `rA` 和 `rB` 来确定需要读取的寄存器。
-
-也有部分指令会读取 `rsp` 寄存器（`popq` `pushq` `ret` `call`）。
-
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-### 3. 执行（Execute）
-
-**操作**：执行阶段，算术/逻辑单元（ALU）进行运算，包括如下情况：
-
-- 执行指令指明的操作（`opq`）
-- 计算内存引用的地址（`rmmovq` `mrmovq`）
-- 增加/减少栈指针（`pushq` `popq`）<span text-sm text-gray-5>其中加数可以是 +8 或 -8</span>
-
-最终，我们把此阶段得到的值称为 `valE`（Execute stage value）。
-
-一般来讲，这里使用的运算为加法运算，除非是在 `OPq` 指令中通过 `ifun` 指定为其他运算。这个阶段还会：
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-设置条件码（`OPq`）：
-
-```hcl
-set CC
-```
-
-</div>
-
-<div>
-
-检查条件码和和传送条件（`jXX` `cmovXX`）：
-
-```hcl
-Cnd <- Cond(CC, ifun)
-```
-
-</div>
-</div>
-
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-### 4. 访存（Memory）
-
-**操作**：访存阶段可以将数据写入内存（`rmmovq` `pushq` `call`），或从内存读取数据（`mrmovq` `popq` `ret`）
-
-- 若是向内存写，则：
-  - 写入的地址为 `valE`（需要计算得到，`rmmovq` `pushq` `call`）
-  - 数据为 `valA`（`rmmovq` `pushq`） 或 `valP`（`call`）
-- 若是从内存读，则：
-  - 地址为 `valA`（`popq` `ret`，此时 `valB` 用于计算更新后的 `%rsp`） 或者 `valE`（需要计算得到，`mrmovq`）
-  - 读出的值为 `valM`（Memory stage value）
-
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-### 5. 写回（Write Back）
-
-**操作**：写回阶段最多可以写 **两个**{.text-sky-5} 结果到寄存器文件（即更新寄存器）。
-
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-### 6. 更新PC（PC Update）
-
-**操作**：将 PC 更新成下一条指令的地址 `new_pc`。
-
-- 对于 `call` 指令，`new_pc` 是 `valC`
-- 对于 `jxx` 指令，`new_pc` 是 `valC` 或 `valP`，取决于条件码
-- 对于 `ret` 指令，`new_pc` 是 `valM`
-- 其他情况，`new_pc` 是 `valP`
-
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-<div text-sm>
-
-的确有直接传 `valA` 到 `M` 的，但那一般是 `valE` 算别的去了（`rmmovq` `pushq` `popq`）。也可以理解为想要 `rrmovq` 和 `irmovq` 更统一一些所以这么设计。
-
-这里的表中没有写出 `cmovXX`，因为其与 `rrmovq` 共用同一个 `icode`，然后通过 `ifun` 区分。注意 `OPq` 的顺序，是 `valB OP valA`。
-
-</div>
-
-![seq_inst_stages_1](./res/image/slides.assets/seq_inst_stages_1.png){.h-75.mx-auto}
-
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-<div grid="~ cols-3 gap-8">
-<div>
-
-`valC` 被当做偏移量使用，与 `valB` 相加得到 `valE`，然后 `valE` 被当做地址使用。
-
-</div>
-
-<div col-span-2>
-
-![seq_inst_stages_2](./res/image/slides.assets/seq_inst_stages_2.png){.h-90.mx-auto}
-
-</div>
-</div>
-
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-<div grid="~ cols-3 gap-8">
-<div>
-
-`popq` 中，会将 `valA` 和 `valB` 的值都设置为 `R[%rsp]`，因为一个要用于去当内存，读出旧 `M[%rsp]` 处的值，一个要用于计算，更新 `R[%rsp]`。
-
-为了统一，在 `popq` 中，用于计算的依旧是 `valB`。
-
-<div text-sm>
-
-- `pushq %rsp` 的行为：`pushq` 压入的是旧的 `%rsp`，然后 `%rsp` 减 8
-- `popq %rsp` 的行为：`popq` 读出的是旧的 `M[%rsp]`，然后 `%rsp` 加 8
-
-↑ 其他情况：
-
-`pushq` 先 -8 再压栈；`popq` 先读出再 +8
-
-</div>
-
-</div>
-
-<div col-span-2>
-
-![seq_inst_stages_3](./res/image/slides.assets/seq_inst_stages_3.png){.h-90.mx-auto}
-
-</div>
-</div>
-
----
-
-# Y86-64 的顺序实现
-
-sequential implementation
-
-<div text-sm>
-
-`ret` 指令和 `popq` 指令类似，`call` 指令和 `pushq` 指令类似，区别只有 PC 更新的部分。
-
-所以，同样注意他们用于计算的依旧是 `valB`。
-
-</div>
-
-![seq_inst_stages_4](./res/image/slides.assets/seq_inst_stages_4.png){.h-75.mx-auto}
-
----
-
-# HCL 代码
-
-hardware description/control language
-
-HCL 语法包括两种表达式类型：**布尔表达式**（单个位的信息）和**整数表达式**（多个位的信息），分别用 `bool-expr` 和 `int-expr` 表示。
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-#### 布尔表达式
-
-逻辑操作
-
-`a && b`，`a || b`，`!a`（与、或、非）
-
-字符比较
-
-`A == B`，`A != B`，`A < B`，`A <= B`，`A >= B`，`A > B`
-
-集合成员资格
-
-`A in { B, C, D }`
-
-等同于 `A == B || A == C || A == D`
-
-</div>
-
-<div>
-
-#### 字符表达式
-
-case 表达式
-
-```hcl
-[
-  bool-expr1 : int-expr1
-  bool-expr2 : int-expr2
-  ...
-  bool-exprk : int-exprk
-]
-```
-
-- `bool-expr_i` 决定是否选择该 case。
-- `int-expr_i` 为该 case 的值。
-
-<div text-sky-5>
-
-依次评估测试表达式，返回第一个成功测试的字符表达式 `A`，`B`，`C`
-
-</div>
-
-</div>
-</div>
-
-
----
-
-# 顺序实现 - 取指阶段
-
-sequential implementation: fetch stage
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-```hcl {*}{maxHeight:'380px'}
-# 指令代码
-word icode = [
-  imem_error: INOP; # 读取出了问题，返回空指令
-  1: imem_icode; # 读取成功，返回指令代码
-];
-
-# 指令功能
-word ifun = [
-  imem_error: FNONE; # 读取出了问题，返回空操作
-  1: imem_ifun; # 读取成功，返回指令功能
-];
-
-# 指令是否有效
-bool instr_valid = icode in {
-  INOP, IHALT, IRRMOVQ, IIRMOVQ, IRMMOVQ, IMRMOVQ,
-  IOPQ, IJXX, ICALL, IRET, IPUSHQ, IPOPQ
-};
-
-# 是否需要寄存器
-bool need_regids = icode in {
-  IRRMOVQ, IOPQ, IPUSHQ, IPOPQ,
-  IIRMOVQ, IRMMOVQ, IMRMOVQ
-};
-
-# 是否需要常量字
-bool need_valC = icode in {
-  IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL
-};
-```
-
-</div>
-
-<div>
-
-![fetch](./res/image/slides.assets/fetch.png)
-
-</div>
-</div>
-
----
-
-# 顺序实现 - 译码阶段
-
-sequential implementation: decode stage
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-```hcl
-# 源寄存器 A 的选择
-word srcA = [
-  icode in { IRRMOVQ, IRMMOVQ, IOPQ, IPUSHQ } : rA;
-  icode in { IPOPQ, IRET } : RRSP;
-  1 : RNONE; # 不需要寄存器
-];
-# 源寄存器 B 的选择
-word srcB = [
-  icode in { IOPQ, IRMMOVQ, IMRMOVQ } : rB;
-  icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
-  1 : RNONE; # 不需要寄存器
-];
-```
-
-</div>
-
-<div>
-
-```hcl
-# 目标寄存器 E 的选择
-word dstE = [
-  icode in { IRRMOVQ } && Cnd : rB; # 支持 cmovXX
-  icode in { IIRMOVQ, IOPQ } : rB; # 注意这里！
-  icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
-  1 : RNONE; # 不写入任何寄存器
-];
-# 目标寄存器 M 的选择
-word dstM = [
-  icode in { IMRMOVQ, IPOPQ } : rA;
-  1 : RNONE; # 不写入任何寄存器
-];
-```
-
-
-</div>
-</div>
-
-寄存器 ID `srcA` 表明应该读哪个寄存器以产生 `valA`（注意不是 `aluA`），`srcB` 同理。
-
-寄存器 ID `dstE` 表明写端口 E 的目的寄存器，计算出来的 `valE` 将放在那里，`dstM` 同理。
-
-在 SEQ 实现中，回写和译码放到了一起。
-
----
-
-# 顺序实现 - 执行阶段
-
-sequential implementation: execute stage
-
-
-```hcl
-# 选择 ALU 的输入 A
-word aluA = [
-  icode in { IRRMOVQ, IOPQ } : valA;  # 指令码为 IRRMOVQ 时，执行 valA + 0
-  icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ } : valC;  # 立即数相关，都送入的是 aluA
-  icode in { ICALL, IPUSHQ } : -8;  # 减少栈指针
-  icode in { IRET, IPOPQ } : 8;  # 增加栈指针
-  # 其他指令不需要 ALU
-];
-# 选择 ALU 的输入 B，再次强调 OPq 指令中，是 `valB OP valA`
-word aluB = [
-  icode in { IRMMOVQ, IMRMOVQ, IOPQ, ICALL, IPUSHQ, IRET, IPOPQ } : valB;  # 大部分都用 valB
-  icode in { IRRMOVQ, IIRMOVQ } : 0;  # 指令码为 IRRMOVQ 或 IIRMOVQ 时，选择 0
-  # 其他指令不需要 ALU
-];
-# 设置 ALU 功能
-word alufun = [
-  icode == IOPQ : ifun;  # 如果指令码为 IOPQ，则使用 ifun 指定的功能
-  1 : ALUADD;  # 默认使用 ALUADD 功能
-];
-# 是否更新条件码
-bool set_cc = icode in { IOPQ };  # 仅在指令码为 IOPQ 时更新条件码
-```
-
----
-
-# 顺序实现 - 访存阶段
-
-sequential implementation: memory stage
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-
-```hcl
-# 设置读取控制信号
-bool mem_read = icode in { IMRMOVQ, IPOPQ, IRET };
-# 设置写入控制信号
-bool mem_write = icode in { IRMMOVQ, IPUSHQ, ICALL };
-# 选择内存地址
-word mem_addr = [
-  icode in { IRMMOVQ, IPUSHQ, ICALL, IMRMOVQ } : valE;
-  icode in { IPOPQ, IRET } : valA; # valE 算栈指针去了
-  # 其它指令不需要使用地址
-];
-```
-
-
-</div>
-
-<div>
-
-
-```hcl
-# 选择内存输入数据
-word mem_data = [
-  # 从寄存器取值
-  icode in { IRMMOVQ, IPUSHQ } : valA; # valB 算地址去了
-  # 返回 PC
-  icode == ICALL : valP;
-  # 默认：不写入任何数据
-];
-# 确定指令状态
-word Stat = [
-  imem_error || dmem_error : SADR;
-  !instr_valid : SINS;
-  icode == IHALT : SHLT;
-  1 : SAOK;
-];
-```
-
-</div>
-</div>
-
----
-
-# 顺序实现 - 更新 PC 阶段
-
-sequential implementation: update pc stage
-
-
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-```hcl
-# 设置新 PC 值
-word new_pc = [
-  # 调用指令，使用指令常量
-  icode == ICALL : valC;
-  # 条件跳转且条件满足，使用指令常量
-  icode == IJXX && Cnd : valC;
-  # RET 指令完成，使用栈中的值
-  icode == IRET : valM;
-  # 默认：使用递增的 PC 值
-  # 等于上一条指令地址 + 上一条指令长度 1,2,9,10
-  1 : valP;
-];
-```
-
-</div>
-
-<div v-click>
-
-![fetch](./res/image/slides.assets/fetch.png)
-
-
-</div>
-</div>
-
-<button @click="$nav.go(25)">🔙</button>
-
----
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-# 顺序实现 - 总结
-
-sequential implementation: summary
-
-重点关注：
-
-- `valA` 和 `valB` 怎么连的
-- 什么时候 `valP` 可以直传内存
-- 什么时候 `valA` 可以直传内存
-
-<div v-click mt-4>
-
-### 答案：
-
-1. `call`
-2. `rmmovq` `pushq` `popq` `retq` （`mrmovq` 需要吗？不！）
-
-</div>
-
-</div>
-
-<div>
-
-
-
-![seq_hardware](./res/image/slides.assets/seq_hardware.png){.h-120.mx-auto}
-
-</div>
-</div>
-
----
-
-# 流水线实现
-
-pipelined implementation
-
-什么是流水线？答：通过同一时间上的并行，来提高效率。
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-![without_pipeline](./res/image/slides.assets/without_pipeline.png)
-
-</div>
-
-<div>
-
-![with_pipeline](./res/image/slides.assets/with_pipeline.png)
-
-</div>
-</div>
-
----
-
-# 流水线实现
-
-pipelined implementation
-
-<div class="text-sm">
-
-
-吞吐量：单位时间内完成的指令数量。
-
-单位：每秒千兆指令（GIPS，$10^9$ instructions per second，等于 1 ns（$10^{-9}$ s） 执行多少条指令再加个 G）。
-
-
-<div grid="~ cols-2 gap-8">
-<div>
-
-$$
-\text{吞吐量} = \frac{1}{(300 + 20) \text{ps}} \cdot \frac{1000 \text{ps}}{1 \text{ns}}  = 3.125 \text{GIPS}
-$$
-
-![without_pipeline](./res/image/slides.assets/without_pipeline.png){.h-60.mx-auto}
-
-</div>
-
-<div>
-
-$$
-\text{吞吐量} = \frac{1}{(100 + 20) \text{ps}} \cdot \frac{1000 \text{ps}}{1 \text{ns}}  = 8.33 \text{GIPS}
-$$
-
-![with_pipeline](./res/image/slides.assets/with_pipeline.png){.h-60.mx-auto}
-
-</div>
-</div>
-
-
-</div>
-
----
-
-# 流水线实现的局限性
-
-pipelined implementation: limitations
-
-- **运行时钟的速率是由最慢的阶段的延迟限制的**。每个时钟周期的最后，只有最慢的阶段会一直处于活动状态
-- **流水线过深**：不能无限增加流水线的阶段数，**因为此时流水线寄存器的延迟占比加大**。
-- **数据冒险**
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-![pipe_limit_1](./res/image/slides.assets/pipe_limit_1.png){.mx-auto}
-
-</div>
-
-<div>
-
-![pipe_limit_2](./res/image/slides.assets/pipe_limit_2.png){.mx-auto}
-
-</div>
-</div>
-
-```asm
-irmovq $50, %rax   ; 将立即数50移动到寄存器rax中
-addq %rax, %rbx    ; 将寄存器rax中的值与rbx中的值相加
-mrmovq 100(%rbx), %rdx  ; 从内存地址rbx+100读取值到寄存器rdx中
-```
-
-
----
-
-# SEQ 与 SEQ+
-
-SEQ vs SEQ+
-
-- 在 SEQ 中，PC 计算发生在时钟周期结束的时候，根据当前时钟周期内计算出的信号值来计算 PC 寄存器的新值。<button @click="$nav.go(20)">💡</button>
-- 在 SEQ+ 中，我们需要在每个时钟周期都可以取出下一条指令的地址，所以更新 PC 阶段在一个时钟周期开始时执行，而不是结束时才执行。
-- **SEQ+ 没有硬件寄存器来存放程序计数器**。而是根据从前一条指令保存下来的一些状态信息动态地计算 PC。
-
-![seq+_pc](./res/image/slides.assets/seq+_pc.png){.mx-auto.h-40}
-
-此处，小写的 `p` 前缀表示它们保存的是前一个周期中产生的控制信号。
-
----
-
-# SEQ vs SEQ+
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-![seq_hardware](./res/image/slides.assets/seq_hardware.png){.h-90.mx-auto}
-
-</div>
-
-<div>
-
-![seq+_hardware](./res/image/slides.assets/seq+_hardware.png){.h-90.mx-auto}
-
-</div>
-</div>
-
-<button @click="$nav.go(43)">🔙</button> 
-
----
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-# 弱化一些的 PIPE 结构
-
-PIPE-
-
-各个信号的命名：
-
-- 在命名系统中，大写的前缀 “D”、“E”、“M” 和 “W” 指的是 **流水线寄存器**，所以 `M_stat` 指的是流水线寄存器 `M` 的状态码字段。
-
-    可以理解为，对应阶段开始时就已经是正确的值了（且由于不回写的原则，所以该时钟周期内不会再改变，直到下一个时钟上升沿的到来）
-- 小写的前缀 `f`、`d`、`e`、`m` 和 `w` 指的是 **流水线阶段**，所以 `m_stat` 指的是在访存阶段 **中** 由控制逻辑块产生出的状态信号。
-
-    可以理解为，对应阶段中，完成相应运算时才会是正确的值
-
-
-
-
-</div>
-
-<div>
-
-![pipe-_hardware](./res/image/slides.assets/pipe-_hardware.png){.h-120.mx-auto}
-
-</div>
-</div>
-
----
-
-# SEQ+ vs PIPE-
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-![seq+_hardware](./res/image/slides.assets/seq+_hardware.png){.h-90.mx-auto}
-
-</div>
-
-<div>
-
-![pipe-_hardware](./res/image/slides.assets/pipe-_hardware.png){.h-90.mx-auto}
-
-</div>
-</div>
-
-<button @click="$nav.go(43)">🔙</button> 
-
----
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-# 弱化一些的 PIPE 结构
-
-PIPE-
-
-
-- 等价于在 SEQ+ 中插入了流水线寄存器 **（他们都是即将由对应阶段进行处理）**{.text-sky-5}
-  - F：Fetch，取指阶段
-  - D：Decode，译码阶段
-  - E：Execute，执行阶段
-  - M：Memory，访存阶段
-  - W：Write back，写回阶段
-- 同时，有个新模块 `selectA` 来选择 `valA` 的来源
-  - `valP`：`call` `jXX`（后面讲，可以想想为啥，提示：控制冒险）
-  - `d_valA`：其他未转发的情况（后面讲）<button @click="$nav.go(41)">🔙</button>
-
-</div>
-
-<div>
-
-![pipe-_hardware](./res/image/slides.assets/pipe-_hardware.png){.h-120.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPE- 分支预测
-
-PIPE- branch prediction
-
-**分支预测**：猜测分支方向并根据猜测开始取指的技术。
-
-对于 `jXX` 指令，有两种情况：
-
-- 分支不执行：下一条 PC 是 `valP`
-- 分支执行：下一条 PC 是 `valC`
-
-由于我们现在是流水线，我们需要每个时钟周期都能给出一个指令地址用于取址，所以我们采用分支预测：
-
-最简单的策略：总是预测选择了条件分支，因而预测 PC 的新值为 `valC`。
-
-对于 `ret` 指令，我们等待它通过写回 `W` 阶段（从而可以从 `M` 中得到之前压栈的返回值并更新 `PC`）。
-
-> 同条件转移不同，`ret` 可能的返回值几乎是无限的，因为返回地址是位于栈顶的字，其内容可以是任意的。
-
----
-
-# 流水线冒险
-
-hazards
-
-冒险分为两类：
-
-1. **数据冒险 (Data Hazard)**：下一条指令需要使用当前指令计算的结果。
-2. **控制冒险 (Control Hazard)**：指令需要确定下一条指令的位置，例如跳转、调用或返回指令。
-
-<!-- 提醒大家仔细听 -->
-
----
-
-# 数据冒险
-
-data hazard
-
-<div grid="~ cols-2 gap-8">
-<div>
-
-数据冒险是相对容易理解的。
-
-在右图代码中，`%rax` 的值需要在第 6 个周期结束时才能完成写回，但是在 第 6 个周期内，正处于译码阶段的 `addq` 指令就需要使用 `%rax` 的值了。这就产生了数据冒险。
-
-类似可推得，如果一条指令的操作数被它前面 3 条指令中的任意一条改变的话，都会出现数据冒险。
-
-我们需要满足：当后来的需要某一寄存器的指令处于译码 D 阶段时，该寄存器的值必须已经更新完毕（即已经 **完成** 写回 W 阶段）。
-
-<div class="text-sm">
-
-$$
-5(完成 W) - 1(开始 D，即完成 F) - 1(错开一条指令) = 3
-$$
-
-</div>
-
-
-</div>
-
-<div>
-
-
-
-![data_hazard](./res/image/slides.assets/data_hazard.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# 数据冒险的解决：暂停
-
-data hazard resolution: stall
-
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-
-**暂停**：暂停时，处理器会停止流水线中一条或多条指令，直到冒险条件不再满足。
-
-<div class="text-sm">
-
-> 让一条指令停顿在译码阶段，直到产生它的源操作数的指令通过了写回阶段，这样我们的处理器就能避免数据冒险。（即，下一个时钟周期开始时，此指令开始真正译码，此时源操作数已经更新完毕）
-
-暂停技术就是让一组指令阻塞在它们所处的阶段，而允许其他指令继续通过流水线（如右图 `irmovq` 指令）。
-
-每次要把一条指令阻塞在 **译码阶段**，就在 **执行阶段**（下一个阶段）插入一个气泡。
-
-气泡就像一个自动产生的 `nop` 指令，**它不会改变寄存器、内存、条件码或程序状态。**{.text-sky-5}
-
-</div>
-
-
-</div>
-
-<div>
-
-![stall](./res/image/slides.assets/stall.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# 暂停 vs 气泡
-
-stall vs bubble
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-- 正常：寄存器的状态和输出被设置成输入的值
-- 暂停：状态保持为先前的值不变
-- 气泡：会用 `nop` 操作的状态覆盖当前状态
-
-所以，在上页图中，我们说：
-- 给执行阶段插入了气泡
-- 对译码阶段执行了暂停
-
-<button @click="$nav.go(45)">🔙</button>
-
-</div>
-
-<div>
-
-![stall_vs_bubble](./res/image/slides.assets/stall_vs_bubble.png){.mx-auto}
-
-</div>
-</div>
-
-
----
-
-# 数据冒险的解决：转发
-
-data hazard resolution: forwarding
-
-![data_hazard_2](./res/image/slides.assets/data_hazard_2.png){.mx-auto.h-80}
-
-<div class="text-sm">
-
-
-实际上，在这里，所需要的真实  `%rax` 值，早在 4E 快结束时就已经计算出来了。而我们需要用到它的是 5E 的开始。
-
-回忆：大写的寄存器是在对应阶段开始时就已经是正确的值。
-
-</div>
-
----
-
-# 数据冒险的解决：转发
-
-data hazard resolution: forwarding
-
-**转发**：将结果值直接从一个流水线阶段传到较早阶段的技术。
-
-这个过程可以发生在许多阶段（下图中，要到 6E 寄存器才定下来，所以只要在时钟上升沿来之前，都来得及）。
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-![forward_1](./res/image/slides.assets/forward_1.png){.mx-auto.h-80}
-
-</div>
-
-<div>
-
-![forward_2](./res/image/slides.assets/forward_2.png){.mx-auto.h-80}
-
-</div>
-</div>
-
----
-
-# 特殊的数据冒险：加载 / 使用冒险
-
-data hazard: load / use hazard
-
-- 如果在先前指令的 E 执行阶段（其内靠后时）就已经可以得到正确值，那么由于后面的指令至少落后 1 个阶段，我们总可以在后面指令的 E 寄存器最终确定之前，将正确值转发解决问题。
-- 如果在先前指令的 M 访存阶段（其内靠后时）才能得到正确值，且后面指令紧跟其后，那么当我们实际得到正确值时，必然赶不上后面指令的 E 寄存器最终确定，所以我们必须暂停流水线。
-- 所以，加载 / 使用冒险只发生在 `mrmovq` 后立即使用对应寄存器的情况。
-
-<div class="text-sm text-gray-5">
-
-书上老说什么把值送回过去，我觉得第一次读真难明白吧。
-
-</div>
-
----
-
-# 特殊的数据冒险：加载 / 使用冒险
-
-data hazard: load / use hazard
-
-![load_use_hazard](./res/image/slides.assets/load_use_hazard.png){.mx-auto.h-100}
-
----
-
-# 加载 / 使用冒险解决方案：暂停 + 转发
-
-load / use hazard solution
+- 通过 address 引脚传入地址
+- 在 DRAM 单元阵列中访存后通过 data 引脚输出数据
+- 通常会重复利用 address 引脚进行二维访存
 
 <div grid="~ cols-3 gap-12">
 <div>
 
-依旧是：
+![dram_core](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/dram_core.png){.h-100px.mx-auto}
 
-- 译码阶段中的指令暂停 1 个周期
-- 执行阶段中插入 1 个气泡
+DRAM 芯片{.text-center}
 
-此时，`m_valM` 的值已经更新完毕，所以可以转发到 `d_valA`。
+- 由 $r$ 行，$c$ 列个 DRAM 超单元组成（组织成二维阵列）
+- 总共有 $d = r \times c$ 个超单元
+- 总容量：$d \times w$ 位数据
 
-`m_valM`：在 M 阶段内，取出的内存值
+</div>
 
-`d_valA`：在 D 阶段内，计算得到的即将设置为 `E_valA` 的值
+<div>
+
+![dram_supercell](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/dram_supercell.png){.h-100px.mx-auto}
+
+DRAM 超单元（SuperCell）{.text-center}
+
+- 由 $w$ 个 DRAM 单元组成，携带 $w$ 位数据
+
+</div>
+
+<div>
+
+![dram](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/dram.png){.h-100px.mx-auto}
+
+DRAM 单元（Unit）{.text-center}
+
+- 每个 DRAM 单元携带 $1$ 位数据
+
+</div>
+</div>
+
+---
+
+# DRAM 的读取
+
+DRAM read
+
+1. 行缓冲区在传入行访问信号（RAS，Row Address Strobe，行地址选通）时复制一行内容，实现缓存
+2. 传入列地址选通信号（CAS，Column Address Strobe，列地址选通），从行缓冲区中选出指定列的数据
+
+二维访存：可以将原先需要 $m$ 位引脚的地址，拆分为两次 $m/2$ 位引脚的地址，即分别传入行地址和列地址
+
+![dram_ras_cas](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/dram_ras_cas.png){.mx-auto.h-60}
+
+---
+
+# DRAM 的读取
+
+DRAM read
+
+<div grid="~ cols-2 gap-12">
+<div>
+
+“8 个 8M x 8 的 64 MB 内存模块”
+
+- 8 个 DRAM 芯片
+- 每个芯片由 8M 个超单元组成
+- 每个超单元携带 8 位（bit）数据
+- 总容量：$8 \times 8M \times 8 \text{bit} = 64 \text{MB}$
+
+可以利用相同的地址引脚，快速取出 64 位（bit）数据
+
+（回忆：地址是超单元的地址）
+
+</div>
+
+<div>
+
+![dram_example](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/dram_example.png)
+
+</div>
+</div>
+
+---
+
+# 增强的 DRAM
+
+Enhanced DRAM
+
+重要！经常考选择题辨析。
+
+<div grid="~ cols-2 gap-6" text-sm>
+<div>
+
+#### 快页存取DRAM
+
+- Fast Page Mode DRAM（FPM DRAM）
+- FPM DRAM 允许对同一行连续地址访问可以直接从行缓冲区得到服务{.text-sky-5}（从而减少 `RAS` 请求）。
+
+</div>
+
+<div>
+
+#### 扩展数据输出DRAM
+
+- Extended Data Out DRAM（EDO DRAM）
+- FPM DRAM 的增强版
+- 它允许 `CAS` 信号在时间上靠得更紧密一点
+
+</div>
+
+<div>
+
+#### 同步DRAM
+
+- Synchronous DRAM（SDRAM）{.text-sky-5}
+- 使用同步控制信号（时钟上升沿），能更快速输出超单元内容。
+- FPM 和 EDO DRAM 是异步控制。
+
+![sdram](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/sdram.png){.w-70.mx-auto}
+
+</div>
+
+<div>
+
+#### 双倍数据速率同步DRAM
+
+- Double Data-Rate Synchronous DRAM（DDR SDRAM）
+- SDRAM 的增强版本，通过使用两个时钟沿（同时使用上升沿和下降沿）作为控制信号
+- 使得 DRAM 速度翻倍
+
+![ddrm](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/ddrm.png){.w-70.mx-auto}
+
+</div>
+</div>
+
+省流：全都是 DRAM 的增强版，和 SRAM 没有关系。
+
+---
+
+# ROM
+
+Read-Only Memory
+
+只读存储器（非易失性存储器）
+
+- 断电后仍然能保存数据
+- 常用于数据的持久性存储
+- 常见：闪存
+- SSD 基于闪存
+
+---
+
+# 磁盘存储
+
+Disk Storage
+
+- 非易失性存储器，断电后数据不丢失
+- 容量数量级：GB~TB
+- 访问时间：ms 级别
+
+---
+
+# 磁盘结构
+
+Disk Structure
+
+![disk_structure](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/disk_structure.png){.mx-auto.h-60}
+
+- 磁盘：由多个盘片构成，每个盘片有 2 个可读写面
+- 磁道：盘片表面同一半径的圆周，每个盘面有多个磁道
+- 扇区：磁道被划分成一段段数据块
+- 柱面：**所有盘片** 的同一半径磁道集合
+
+---
+
+# 磁盘容量
+
+Disk Capacity
+
+容量公式：
+
+<div class="text-sm">
+
+$$
+\text{磁盘容量} = \text{每个扇区字节数} \times \text{每个磁道平均扇区数} \times \text{每个表面磁道数} \times \text{每个盘片表面数(2)} \times \text{盘片数}
+$$
+
+</div>
+
+衍生概念：
+
+- 记录密度：磁道一英寸能放的位数
+- 磁道密度：从圆心出发半径一英寸能有多少条磁道
+- 面密度：记录密度 × 磁道密度
+
+---
+
+# 多区记录
+
+Multi-Zone Recording
+
+<div grid="~ cols-2 gap-4">
+<div>
+
+### 传统方法
+
+每个磁道都划分为相同数量的扇区，则：
+
+- 扇区数目是由最内磁道决定的
+- 外周磁道会有很多空隙
+
+
+
+</div>
+
+<div>
+
+
+### 多区记录方法
+
+- 将柱面划分为若干组
+- 每组内部采用相同的扇区数，不同组间扇区数可不同
+- 能有效利用空间
+
+</div>
+
+![disk_traditional](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/disk_traditional.svg){.mx-auto.h-40}
+
+![disk_multi_zone](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/disk_multi_zone.svg){.mx-auto.h-40}
+</div>
+
+---
+
+# 计量单位
+
+Unit of measurement
+
+<div grid="~ cols-2 gap-12">
+<div>
+
+
+DRAM 和 SRAM 容量相关计量单位：
+
+- K = $2^{10}$
+- M = $2^{20}$
+- G = $2^{30}$
+- T = $2^{40}$
+
+</div>
+
+<div>
+
+
+磁盘和网络等 I/O 设备容量计量单位：
+
+- K = $10^3$
+- M = $10^6$
+- G = $10^9$
+- T = $10^{12}$
+
+</div>
+</div>
+
+省流版本：
+
+- 内存（含）及以上（更快），使用 2 的幂次作为单位{.text-sky-5}
+- 磁盘及以下（更慢），使用 10 的幂次作为单位{.text-sky-5}
+
+---
+
+# 磁盘读写
+
+Disk Read/Write
+
+传动臂末端具有读写头，通过以下步骤进行读写：
+
+1. **寻道**：通过旋转将读写头移动到对应磁道上（$T_{\text{seek}}$）
+2. **旋转**：等待对应扇区开头旋转到读写头位置（$T_{\text{rotate}}$），最差情况为 $\frac{1}{\text{RPM}} \times 60 \text{s/min}$，接近于寻道时间
+3. **传送**：开始读写，每个扇区的平均传送速率（$T_{\text{transfer}}$），一般可忽略
+
+<div grid="~ cols-2 gap-12">
+<div>
+
+![disk_seek](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/disk_seek.png){.h-40.mx-auto}
+
+<div text-center>
+
+寻道时间：$T_{\text{seek}}$
+
+</div>
+
+</div>
+
+<div>
+
+![disk_rotate](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/disk_rotate.png){.h-40.mx-auto}
+
+<div text-center> 
+
+旋转时间：$T_{\text{rotate}}$
+
+</div>
+
+</div>
+
+</div>
+
+---
+
+# SSD 固态硬盘
+
+Solid State Disk
+
+固态硬盘（Solid State Disk，SSD）是一种基于闪存的存储技术，是传统旋转磁盘的替代产品。
+
+SSD 价格贵于旋转磁盘。
+
+<div grid="~ cols-2 gap-12">
+
+<div>
+
+#### SSD 层级结构{.my-4}
+
+- SSD，闪存由多个闪存块组成
+- 闪存块（Block），$0 \sim B-1$，每个块包含多个闪存页
+- 闪存页（Page），$0 \sim P-1$，每个页包含 512B～4KB 数据
+
+
+</div>
+
+<div>
+
+![ssd](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/ssd.png)
+
+</div>
+
+</div>
+
+---
+
+# SSD 读写特性
+
+SSD Read/Write Characteristics 
+
+- 速度：读 > 写，顺序访问 > 随机访问
+- 数据以页为单位读写，页所在块必须先擦除再写入（全部置为 1）{.text-sky-5}
+- 写操作前需复制 **页内容** 到 **新块** 并 **擦除旧块**
+- 一旦一个块被擦除了，块中每一个页都可以不需要再进行擦除就写一次
+- 每个块在反复擦除后会磨损乃至损坏（约 100,000 次），需要通过闪存翻译层管理，以最小化擦除次数
+
+
+![ssd](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/ssd.png){.h-60.mx-auto}
+---
+
+# 局部性
+
+Locality
+
+**局部性**：程序倾向于引用最近引用过的数据项的邻近的数据项，或者最近引用过的数据项本身。
+
+- **空间局部性**：相邻位置的变量被集中访问（最近引用过的数据项及其邻近数据项）
+- **时间局部性**：同一变量在短时间内被重复访问（最近引用过的数据项本身）
+
+注意，指令也是数据的一种，因此指令也有局部性。
+
+
+---
+
+# 步长与引用模式
+
+stride and reference pattern
+
+- **步长为 $k$ 的引用模式**：每隔 $k$ 个元素访问一次，**步长越短，空间局部性越强。**{.text-sky-5}（行优先访问好于列优先访问）
+- **指令的局部性**：指令按顺序执行，例如 `for` 循环，具有良好的时间（循环体、循环变量复用）和空间局部性（循环体内指令连续）。
+
+循环次数越多越好，循环体越小越好
+
+---
+
+# 存储器层次结构
+
+Memory Hierarchy
+
+<div grid="~ cols-2 gap-12">
+<div>
+
+- 越靠近 CPU 的存储器，速度越快，单位比特成本越高，容量越小
+- 越远离 CPU 的存储器，速度越慢，单位比特成本越低，容量越大
+
+通常，我们使用 $L_k$ 层作为 $L_{k+1}$ 层的缓存
+
+如果我们要在 $L_{k+1}$ 中寻找数据块 $a$，我们首先应该在 $L_k$ 中查找。
+
+- **缓存命中**：如果能找到，我们就不必访问 $L_{k+1}$
+- **缓存不命中**：如果找不到，我们才去访问 $L_{k+1}$（那就要花较长时间来复制了）
+
+
+</div>
+
+<div>
+
+![memory_hierarchy](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/memory_hierarchy.png)
+
+</div>
+</div>
+
+---
+
+# 缓存替换策略
+
+Cache Replacement Policy
+
+如果缓存已满，我们需要决定替换 / 驱逐哪个现有块（要腾地方）。
+
+<div grid="~ cols-3 gap-12" mt-8>
+<div>
+
+### 最近最少使用
+
+- LRU（Least Recently Used）
+- 替换最后一次访问时间最久远的行
+
+</div>
+
+<div>
+
+### 最不常使用
+
+- LFU（Least Frequently Used）
+- 替换过去某个时间窗口内引用次数最少的行
+
+
+</div>
+
+<div>
+
+### 随机替换
+
+- 随机选择一个块进行替换
+
+</div>
+
+</div>
+
+LRU 不一定比随机替换好。具体哪个策略好，还取决于数据分布。{.text-sky-5}
+
+---
+
+# 缓存不命中的类型
+
+Cache Miss Types
+
+- **冷不命中 / 强制性不命中**：数据块从未进入缓存，短暂性，在 **暖身** 后不会出现
+- **冲突不命中**：由于冲突性放置策略的存在，缓存块的预期位置被其他数据块占据（但是实际上放得下，工作集小于缓存容量）
+- **容量不命中**：与冲突性放置策略无关，工作集大于缓存容量，怎么摆都放不下
+
+![miss](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/miss.svg)
+
+---
+
+# 抖动
+
+Thrashing
+
+**抖动**：当多个数据频繁被访问，但它们无法同时全部放入缓存时，系统不断地在缓存和主存之间进行的频繁数据替换。
+
+![thrashing](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/thrashing.svg){.mx-auto.h-60}
+
+一共只有 4 个位置，但是要放 5 个数据，还都要用，只能不断替换。{.text-center}
+
+
+---
+
+# 缓存组织结构
+
+Cache Organization
+
+<div grid="~ cols-2 gap-12">
+<div text-sm>
+
+一个计算机系统，其中每个存储器地址有 $m$ （<span text-sky-5>m</span>emory）位，从而形成 $M=2^m$ 个不同的地址。
+
+- 高速缓存被组织成一个有 $S=2^s$（<span text-sky-5>s</span>et）个高速缓存组的数据组。
+- 每个组包含 $E$（lin<span text-sky-5>e</span>）个高速缓存行。
+- 每行包含一个 $B=2^b$ （<span text-sky-5>b</span>lock）字节的数据块。
+
+每个行有：
+
+- 有效位（valid bit）：1 位，标明该行是否包含有意义的信息
+- 标记位（tag bit）：$t=m-(b+s)$ 位，用于标识存储在该高速缓存行中的地址
+- 数据块：$B=2^b$ 字节，存储实际数据
+
+总容量（<span text-sky-5>C</span>apacity）：$C=B \times E \times S$ 字节，不包括标记位和有效位 
+<button @click="$nav.go(39)">🔙</button>
+
+
+
+</div>
+
+<div>
+
+![cache_arch](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/cache_arch.png)
+
+</div>
+</div>
+
+---
+
+# 缓存地址划分
+
+Cache Address Division
+
+<div grid="~ cols-2 gap-12">
+<div>
+
+1 个地址，总共有 $m$ 位，从 **高位到低位** 划分如下：
+
+- 标记位：$t$
+- 组索引：$s$
+- 块偏移：$b$
+
+> - 小写符号是位数
+> - 大写符号是位数对应的 2 的幂次，代表一个总数。
+
+
+
+</div>
+
+<div>
+
+![cache_address](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/cache_address.png)
+
+</div>
+</div>
+
+---
+
+# 缓存寻址过程
+
+Cache Addressing Process
+
+<div grid="~ cols-2 gap-12">
+<div>
+
+
+
+当一条加载指令 $A$ 访问存储地址 $A$ 时：
+
+1. **组选择**：根据地址 $A$ 的 **组索引位**，找到对应的组。
+2. **行匹配**：检查该组内是否有 **有效位有效** 且 **标记位匹配** 的缓存行。
+3. **字抽取**：若存在匹配行，则命中缓存，返回该行数据；
+4. **行替换**：否则，发生缓存不命中，选择一个现有的行/块驱逐，从低一级存储器中读取新数据放入缓存。
+
+</div>
+
+<div>
+
+
+
+![cache_set_index](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/cache_set_index.png)
+
+![cache_byte_index](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/cache_byte_index.png)
+
+</div>
+</div>
+
+---
+
+# 缓存地址划分
+
+Cache Address Division
+
+<div grid="~ cols-2 gap-12">
+<div>
+
+为什么划分设计成这样？
+
+1. 块偏移：我们肯定希望 **两个相连的字节在同一个块内**（块是数据交换的最小单位），这样空间局部性更好。从而我们将最低的 $b$ 位作为块偏移。
+2. 组索引：我们希望 **相邻的块可以放在不同的组内**，从而减少冲突不命中。从而我们将接下来的 $s$ 位作为组索引。
+3. 标记：利用地址的唯一性，我们将剩下的 $t$ 位作为标记，用以区分分在同一组的各个块。
+
+
+</div>
+
+<div>
+
+
+![cache_set_index_pos](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/cache_set_index_pos.png)
+
+<div text-center text-sm>
+
+此图中，除外了地址的最低 $b$ 位。
+
+</div>
+
+</div>
+</div>
+
+---
+
+# 不同的缓存组织结构
+
+Different Cache Organization
+
+<div grid="~ cols-3 gap-x-8" text-sm>
+<div>
+
+#### 直接映射高速缓存
+
+- $E=1$
+- 每个组仅有一行
+- 不止 1 个组
+- 最容易发生冲突不命中
+- 硬件最简单（只需匹配 1 次 Tag）
+
+</div>
+
+<div>
+
+#### 组相联高速缓存
+
+- $1 < E < C/B$
+- 每个组有多行
+- 不止 1 个组
+- <span text-sky-5> $E$ 称为路数（$E$ 路组相联） </span>
+
+</div>
+<div>
+
+#### 全相联高速缓存
+
+- <span text-sky-5> $E=C/B$ </span>
+- 1 个组拥有所有行
+- 只有 1 个组，$s=0$
+- 所有行可以任意放置，最灵活，最不易发生冲突不命中
+- 硬件最复杂（需要匹配 Tag 数最多）
+
+</div>
+
+
+
+![cache_direct_mapped](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/cache_direct_mapped.png){.w-60}
+
+![cache_set_associative](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/cache_set_associative.png){.w-60}
+
+![cache_fully_associative](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/cache_fully_associative.png){.w-60}
+
+</div>
+
+---
+
+# 高速缓存读写策略
+
+Cache Read / Write Policy
+
+<div grid="~ cols-2 gap-12">
+<div>
+
+
+## 写命中
+
+写命中：当数据在缓存中时，写操作的策略。
+
+- 写回（Write Back）：写在缓存，直到被替换的时候再写到下层存储器<br><span class="text-sm text-gray-5">（需要额外的 1 位 dirty bit 来标识缓存中数据是否被修改）</span>
+- 直写（Write Through）：写缓存的同时直接写到下层存储器
+
+</div>
+
+<div>
+
+
+## 写不命中
+
+写不命中：当数据不在缓存中时，写操作的策略。
+
+- 写分配（Write Allocate）：写下层存储器的同时加载到缓存
+- 非写分配（Not Write Allocate）：只写到下层存储器，不改变缓存
+
+
+</div>
+</div>
+
+高速缓存层次结构中，下层一般采用写回。
+
+常见搭配：写回+写分配（效率高，因为试图利用局部性，可以减少访存次数），直写+非写分配
+
+<!-- 内存是个不准确的概念，实际上是下层存储器 -->
+
+---
+
+# 高速缓存参数的性能影响
+
+Cache Parameter Performance Impact
+
+高速缓存大小（$C$）：
+- 高速缓存越大，命中率越高
+- 高速缓存越大，命中时间也越高，运行相对更慢
+
+块大小（$B$）：
+- 块大小越大，空间局部性越好
+- 块大小越大，时间局部性可能会变差，因为容量不变时，块越大，高速缓存行数（$E$）可能就会越少，损失时间局部性带来的命中率，不命中处罚大
+
+---
+
+# 高速缓存参数的性能影响
+
+Cache Parameter Performance Impact
+
+相联度（$E$）：
+- $E$ 较高，降低冲突不命中导致抖动的可能性，因为下层存储器的不命中处罚很高，所以下层存储器的相联度往往更高，因为此时降低冲突不命中带来的收益很高
+- $E$ 越高，复杂性越高、成本越高
+- $E$ 越高，不命中处罚越高。因为高相联度缓存的替换策略（如 LRU）更复杂，导致在缓存未命中时，找到一个合适的缓存行来替换会花费更多时间
+- $E$ 增高，可能需要更多标记位（$t \geq \log_2 E$）、LRU 状态位
+- 原则是命中时间和不命中处罚的折中{.text-sky-5}
+
+---
+
+# 高速缓存参数的性能影响
+
+Cache Parameter Performance Impact
+
+写策略：
+- 直写高速缓存容易实现
+- 写回高速缓存引起的传送较少
+- 一般而言，高速缓存越往下层，就越可能使用写回（因为直写无论如何都需要写到下层存储器，这是相对较慢（昂贵）的操作）
+
+---
+
+# 存储器山
+
+Memory Hill
+
+![memory_hill](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/memory_hill.png){.h-100.mx-auto}
+
+---
+
+# 存储器山：空间局部性
+
+Memory Hill: Spatial Locality
+
+<div grid="~ cols-3 gap-4">
+<div>
+
+**步长（stride）对性能的影响**：
+
+- 小步长访问数据时，空间局部性好，缓存命中率高，带宽利用率高。
+- 步长增加时，访问数据的空间局部性下降，缓存命中率降低，带宽利用率下降，吞吐量降低。
 
 </div>
 
 <div col-span-2>
 
-![load_use_hazard_solution](./res/image/slides.assets/load_use_hazard_solution.png){.mx-auto.h-100}
+![memory_hill_spatial_locality](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/memory_hill_spatial_locality.png)
 
 </div>
 </div>
 
 ---
 
-<div grid="~ cols-2 gap-12">
+# 存储器山：时间局部性
+
+Memory Hill: Temporal Locality
+
+<div grid="~ cols-3 gap-4">
 <div>
 
-# PIPE 最终结构
+**工作集大小对性能的影响**：
 
-PIPE final structure
-
-把各个转发逻辑都画出来，就得到了最终的结构。
-
-注意：
-
-- `Sel + Fwd A`：是 PIPE- 中标号为 `Select A` 的块的功能与转发逻辑的结合。<button @click="$nav.go(30)">💡</button>
-- `Fwd B`
-
-<button @click="$nav.go(44)">🔙</button>
+- 小工作集大小时，数据可以更容易地装入上级存储器缓存，缓存命中率高，时间局部性好。
+- 工作集大小增加时，如果工作集超过某一级缓存容量，导致更多的数据需要从更低层次的存储中读取，传输速率下降，吞吐量降低，缓存命中率低，时间局部性差。
 
 </div>
 
-<div>
+<div col-span-2>
 
-![pipe_hardware](./res/image/slides.assets/pipe_hardware.png){.mx-auto.h-120}
+![memory_hill_temporal_locality](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/memory_hill_temporal_locality.png)
 
 </div>
 </div>
 
 ---
 
-# PIPE- vs PIPE
+# 存储器山：预取
 
-<div grid="~ cols-2 gap-12">
+Memory Hill: Prefetch
+
+<div grid="~ cols-3 gap-4">
 <div>
 
-![pipe-_hardware](./res/image/slides.assets/pipe-_hardware.png){.h-90.mx-auto}
+**预取（prefetching）**：指在数据块被实际访问之前，提前将其加载到高速缓存中。
 
-</div>
-
-<div>
-
-![pipe_hardware](./res/image/slides.assets/pipe_hardware.png){.h-90.mx-auto}
-
-</div>
-</div>
-
-<button @click="$nav.go(43)">🔙</button> 
-
----
-
-# 结构之间的差异
-
-differences between structures
-
-<div grid="~ cols-2 gap-4" text-sm>
-<div>
-
-### SEQ
-
-- 完全的分阶段，且顺序执行
-- 没有流水线寄存器
-- 没有转发逻辑
-
-</div>
-
-<div>
-
-### SEQ+
-
-- 把计算新 PC 计算放到了最开始
-- 目的：为了能够划分流水线做准备，当前指令到 D 阶段时，应当能开始下一条指令的 F 阶段
-- 依旧是没有转发逻辑、且顺序执行
-
-<button @click="$nav.go(27)">💡 结构差异图</button> 
-
-</div>
-
-<div>
-
-### PIPE-
-
-- 在 SEQ+ 的基础上，增加了流水线寄存器
-- 增加了一些转发逻辑（但不是所有）
-- 新的转发源：`M_valA` `W_valW` `W_valE`（流水线寄存器们）
-- 转发目的地：`d_valA` `d_valB`
-
-<button @click="$nav.go(29)">💡 结构差异图</button> 
-
-</div>
-
-<div>
-
-### PIPE
-
-- 在 PIPE- 的基础上，完善了转发逻辑，可以转发更多的计算结果（小写开头的，而不是只有大写开头的流水线寄存器）
-- 新的转发源：`e_valE` `m_valM`（中间计算结果们）
-
-<button @click="$nav.go(42)">💡 结构差异图</button> 
-
-</div>
-
-</div>
-
----
-
-# 控制冒险
-
-control hazard
-
-**控制冒险**：当处理器无法根据处于取指阶段的当前指令来确定下一条指令的地址时，就会产生控制冒险。
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-
-发生条件：`RET` `JXX`
-
-`RET` 指令需要弹栈（访存）才能得到下一条指令的地址。
-
-`JXX` 指令需要根据条件码来确定下一条指令的地址。
-
-- `Cnd ← Cond(CC, ifun)`
-- `Cnd ? valC : valP`
-
-
-
-</div>
-
-<div>
-
-```hcl
-# 指令应从哪个地址获取
-word f_pc = [
-  # 分支预测错误时，从增量的 PC 取指令
-  # 传递路径：D_valP -> E_valA -> M_valA
-  # 条件跳转指令且条件不满足时
-  M_icode == IJXX && !M_Cnd : M_valA;
-  # RET 指令终于执行到回写阶段时（即过了访存阶段）
-  W_icode == IRET : W_valM;
-  # 默认情况下，使用预测的 PC 值
-  1 : F_predPC;
-];
-```
-
-<button @click="$nav.go(41)">💡PIPELINE 电路图</button>
-
-注意，这里用到的都是流水线寄存器，而没有中间计算结果（小写前缀）。
-
-</div>
-</div>
-
-
----
-
-# 控制冒险：RET
-
-control hazard: RET
-
-![control_hazard_ret](./res/image/slides.assets/control_hazard_ret.png){.mx-auto.h-45}
-
-涉及取指 F 阶段的不能转发中间结果 `m_valM`，必须等到流水线寄存器 `W_valM` 更新完毕！
-
-为什么：取址阶段没有相关的硬件电路处理中间结果的转发！必须是流水线寄存器同步。
-
-所以需要插入 3 个气泡：
-
-$$
-4(\text{RET } 完成 M) - 0(开始 F) - 1(错开一条指令) = 3
-$$
-
-为什么是气泡：<button @click="$nav.go(35)">💡暂停 vs 气泡</button> 暂停保留状态，气泡清空状态。
-
----
-
-# 控制冒险：JXX
-
-control hazard: JXX
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-- 分支逻辑发现不应该选择分支之前（到达执行 E 阶段），已经取出了两条指令，它们不应该继续执行下去了。
-- 这两条指令都没有导致程序员可见的状态发生改变（没到到执行 E 阶段）。
-
-</div>
-
-<div>
-
-
-
-![control_hazard_jxx](./res/image/slides.assets/control_hazard_jxx.png){.mx-auto.h-40}
-
-</div>
-</div>
-<div grid="~ cols-2 gap-12" text-sm>
-<div>
-
-
-```hcl
-# 是否需要注入气泡至流水线寄存器 D
-bool D_bubble =
-  # 错误预测的分支 
-  (E_icode == IJXX && !e_Cnd) || 
-  # 在取指阶段暂停，同时 ret 指令通过流水线
-  # 但不存在加载/使用冒险的条件（此时使用暂停）
-  !(E_icode in { IMRMOVQ, IPOPQ } &&
-   E_dstM in { d_srcA, d_srcB }) &&
-  # IRET 指令在 D、E、M 任何一个阶段
-  IRET in { D_icode, E_icode, M_icode };
-```
-
-</div>
-
-<div>
-
-```hcl
-# 是否需要注入气泡至流水线寄存器 E
-bool E_bubble =
-  # 错误预测的分支
-  (E_icode == IJXX && !e_Cnd) ||
-  # 加载/使用冒险的条件
-  E_icode in { IMRMOVQ, IPOPQ } && 
-  E_dstM in { d_srcA, d_srcB };
-```
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：取指阶段
-
-pipeline hcl: fetch stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 指令应从哪个地址获取
-word f_pc = [
-  # 分支预测错误时，从增量的 PC 取指令
-  # 传递路径：D_valP -> E_valA -> M_valA
-  # 条件跳转指令且条件不满足时
-  M_icode == IJXX && !M_Cnd : M_valA;
-  # RET 指令终于执行到回写阶段时（即过了访存阶段）
-  W_icode == IRET : W_valM;
-  # 默认情况下，使用预测的 PC 值
-  1 : F_predPC;
-];
-# 取指令的 icode
-word f_icode = [
-  imem_error : INOP;  # 指令内存错误，取 NOP
-  1 : imem_icode;     # 否则，取内存中的 icode
-];
-# 取指令的 ifun
-word f_ifun = [
-  imem_error : FNONE; # 指令内存错误，取 NONE
-  1 : imem_ifun;      # 否则，取内存中的 ifun
-];
-```
-</div>
-
-<div>
-
-![pipeline_fetch_stage](./res/image/slides.assets/pipeline_fetch_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：取指阶段
-
-pipeline hcl: fetch stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 指令是否有效
-bool instr_valid = f_icode in {
-  INOP, IHALT, IRRMOVQ, IIRMOVQ, IRMMOVQ, IMRMOVQ,
-  IOPQ, IJXX, ICALL, IRET, IPUSHQ, IPOPQ
-};
-# 获取指令的状态码
-word f_stat = [
-  imem_error : SADR;   # 内存错误
-  !instr_valid : SINS; # 无效指令
-  f_icode == IHALT : SHLT; # HALT 指令
-  1 : SAOK;            # 默认情况，状态正常
-];
-```
-
-</div>
-
-<div>
-
-![pipeline_fetch_stage](./res/image/slides.assets/pipeline_fetch_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：取指阶段
-
-pipeline hcl: fetch stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 指令是否需要寄存器 ID 字节
-# 单字节指令 `HALT` `NOP` `RET`；不需要寄存器 `JXX` `CALL`
-bool need_regids = f_icode in {
-  IRRMOVQ, IOPQ, IPUSHQ, IPOPQ,
-  IIRMOVQ, IRMMOVQ, IMRMOVQ
-};
-# 指令是否需要常量值
-# 作为值；作为 rB 偏移；作为地址
-bool need_valC = f_icode in {
-  IIRMOVQ, IRMMOVQ, IMRMOVQ, IJXX, ICALL
-};
-# 预测下一个 PC 值
-word f_predPC = [
-  # 跳转或调用指令，取 f_valC
-  f_icode in { IJXX, ICALL } : f_valC;
-  # 否则，取 f_valP
-  1 : f_valP;
-];
-```
-</div>
-
-<div>
-
-![pipeline_fetch_stage](./res/image/slides.assets/pipeline_fetch_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：译码阶段
-
-pipeline hcl: decode stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 决定 d_valA 的来源
-word d_srcA = [
-  # 一般情况，使用 rA
-  D_icode in { IRRMOVQ, IRMMOVQ, IOPQ, IPUSHQ } : D_rA;
-  # 此时，valB 也是栈指针
-  # 但是同时需要计算新值（valB 执行阶段计算）、使用旧值访存（valA）
-  D_icode in { IPOPQ, IRET } : RRSP;
-  1 : RNONE; # 不需要 valA
-];
-# 决定 d_valB 的来源
-word d_srcB = [
-  # 一般情况，使用 rB
-  D_icode in { IOPQ, IRMMOVQ, IMRMOVQ } : D_rB;
-  # 涉及栈指针，需要计算新的栈指针值
-  D_icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
-  1 : RNONE; # 不需要 valB
-];
-```
-
-</div>
-
-<div>
-
-![pipeline_decode_stage](./res/image/slides.assets/pipeline_decode_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：译码阶段
-
-pipeline hcl: decode stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 决定 E 执行阶段计算结果的写入寄存器
-word d_dstE = [
-  # 一般情况，写入 rB，注意 OPQ 指令的 rB 是目的寄存器
-  D_icode in { IRRMOVQ, IIRMOVQ, IOPQ} : D_rB;
-  # 涉及栈指针，更新 +8/-8 后的栈指针
-  D_icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
-  1 : RNONE; # 不写入 valE 到任何寄存器
-];
-# 决定 M 访存阶段读出结果的写入寄存器
-word d_dstM = [
-  # 这两个情况需要更新 valM 到 rA
-  D_icode in { IMRMOVQ, IPOPQ } : D_rA;
-  1 : RNONE; # 不写入 valM 到任何寄存器
-];
-```
-
-</div>
-
-<div>
-
-![pipeline_decode_stage](./res/image/slides.assets/pipeline_decode_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：译码阶段
-
-pipeline hcl: decode stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 决定 d 译码阶段的 valA 的最终结果，即将存入 E_valA
-word d_valA = [
-  # 保存递增的 PC
-  # 对于 CALL，d_valA -> E_valA -> M_valA -> 写入内存
-  # 对于 JXX，d_valA -> E_valA -> M_valA
-  # 跳转条件不满足（预测失败）时，同步到 f_pc
-  D_icode in { ICALL, IJXX } : D_valP; # 保存递增的 PC
-  d_srcA == e_dstE : e_valE; # 前递 E 阶段计算结果
-  d_srcA == M_dstM : m_valM; # 前递 M 阶段读出结果
-  d_srcA == M_dstE : M_valE; # 前递 M 流水线寄存器最新值
-  d_srcA == W_dstM : W_valM; # 前递 W 流水线寄存器最新值
-  d_srcA == W_dstE : W_valE; # 前递 W 流水线寄存器最新值
-  1 : d_rvalA; # 使用从寄存器文件读取的值，r 代表 read
-];
-```
-
-</div>
-
-<div>
-
-![pipeline_decode_stage](./res/image/slides.assets/pipeline_decode_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：译码阶段
-
-pipeline hcl: decode stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 决定 d 译码阶段的 valB 的最终结果，即将存入 E_valB
-word d_valB = [
-  d_srcB == e_dstE : e_valE; # 前递 E 阶段计算结果
-  d_srcB == M_dstM : m_valM; # 前递 M 阶段读出结果
-  d_srcB == M_dstE : M_valE; # 前递 M 流水线寄存器最新值
-  d_srcB == W_dstM : W_valM; # 前递 W 流水线寄存器最新值
-  d_srcB == W_dstE : W_valE; # 前递 W 流水线寄存器最新值
-  1 : d_rvalB; # 使用从寄存器文件读取的值，r 代表 read
-];
-```
-
-</div>
-
-<div>
-
-![pipeline_decode_stage](./res/image/slides.assets/pipeline_decode_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：执行阶段
-
-pipeline hcl: execute stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 选择 ALU 的输入 A
-word aluA = [
-  # RRMOVQ：valA + 0; OPQ：valB OP valA
-  E_icode in { IRRMOVQ, IOPQ } : E_valA;
-  # IRMOVQ：valC + 0; RMMOVQ/MRMOVQ：valC + valB
-  E_icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ } : E_valC;
-  # CALL/PUSH：-8; RET/POP：8
-  E_icode in { ICALL, IPUSHQ } : -8;
-  E_icode in { IRET, IPOPQ } : 8;
-  # 其他指令不需要 ALU 的输入 A
-];
-# 选择 ALU 的输入 B
-word aluB = [
-  # 涉及栈时，有 E_valB = RRSP，用于计算新值
-  E_icode in { IRMMOVQ, IMRMOVQ, IOPQ, ICALL,
-    IPUSHQ, IRET, IPOPQ } : E_valB;
-  # 注意 IRMOVQ 的寄存器字节是 rA=F，即存到 rB
-  E_icode in { IRRMOVQ, IIRMOVQ } : 0;
-  # 其他指令不需要 ALU 的输入 B
-];
-```
 
-</div>
-
-<div>
-
-![pipeline_execute_stage](./res/image/slides.assets/pipeline_execute_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：执行阶段
-
-pipeline hcl: execute stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 设置 ALU 功能
-word alufun = [
-  # 如果指令是 IOPQ，则选择 E_ifun
-  E_icode == IOPQ : E_ifun;
-  # 默认选择 ALUADD
-  1 : ALUADD;
-];
-# 是否更新条件码
-# 仅在指令为 IOPQ 时更新条件码
-# 且只在正常操作期间状态改变
-bool set_cc = E_icode == IOPQ &&
-  !m_stat in { SADR, SINS, SHLT } &&
-  !W_stat in { SADR, SINS, SHLT };
-```
-
-</div>
-
-<div>
-
-![pipeline_execute_stage](./res/image/slides.assets/pipeline_execute_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：执行阶段
-
-pipeline hcl: execute stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-
-```hcl
-# 在执行阶段仅传递 valA 的去向
-# E_valA -> e_valA -> M_valA
-word e_valA = E_valA;
-# CMOVQ 指令，与 RRMOVQ 共用 icode
-# 当条件不满足时，不写入计算值到任何寄存器
-word e_dstE = [
-  E_icode == IRRMOVQ && !e_Cnd : RNONE
-  1 : E_dstE;    # 否则选择 E_dstE
-];
-```
-
-</div>
-
-<div>
-
-![pipeline_execute_stage](./res/image/slides.assets/pipeline_execute_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：访存阶段
-
-pipeline hcl: memory stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 选择访存地址
-word mem_addr = [
-  # 需要计算阶段计算的值
-  # RMMOVQ/MRMOVQ：valE = valC + valB，这里 valA/C “统一”
-  # CALL/PUSH：valE = valB(RRSP) + 8
-  M_icode in { IRMMOVQ, IPUSHQ, ICALL, IMRMOVQ } : M_valE;
-  # 需要计算阶段不修改传递过来的值，即栈指针旧值
-  # d_valA(RRSP) -> E_valA -> M_valA
-  M_icode in { IPOPQ, IRET } : M_valA;
-  # 其他指令不需要访存
-];
-# 是否读取内存
-bool mem_read = M_icode in { IMRMOVQ, IPOPQ, IRET };
-# 是否写入内存
-bool mem_write = M_icode in { IRMMOVQ, IPUSHQ, ICALL };
-```
-
-</div>
-
-<div>
-
-![pipeline_memory_stage](./res/image/slides.assets/pipeline_memory_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：访存阶段
-
-pipeline hcl: memory stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-```hcl
-# 更新状态
-word m_stat = [
-  dmem_error : SADR; # 数据内存错误
-  1 : M_stat; # 默认状态
-];
-```
-
-
-</div>
-
-<div>
-
-![pipeline_memory_stage](./res/image/slides.assets/pipeline_memory_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# PIPELINE 的各阶段实现：写回阶段
-
-pipeline hcl: writeback stage
-
-<div grid="~ cols-2 gap-4">
-<div>
-
-
-```hcl
-# W 阶段几乎啥都不干，单纯传递
-# 设置 E 端口寄存器 ID
-word w_dstE = W_dstE; # E 端口寄存器 ID
-# 设置 E 端口值
-word w_valE = W_valE; # E 端口值
-# 设置 M 端口寄存器 ID
-word w_dstM = W_dstM; # M 端口寄存器 ID
-# 设置 M 端口值
-word w_valM = W_valM; # M 端口值
-# 更新处理器状态
-word Stat = [
-  # SBUB 全称 State Bubble，即气泡状态
-  W_stat == SBUB : SAOK;
-  1 : W_stat; # 默认状态
-];
-```
-
-
-</div>
-
-<div>
-
-![pipeline_memory_stage](./res/image/slides.assets/pipeline_memory_stage.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# 异常处理（气泡 / 暂停）：取指阶段
-
-bubble / stall in fetch stage
-
-注意：bubble 和 stall 不能同时为真。
-
-```hcl
-# 是否向流水线寄存器 F 注入气泡？
-bool F_bubble = 0; # 恒为假
-# 是否暂停流水线寄存器 F？
-bool F_stall = 
-  # 加载/使用数据冒险时，要暂停 1 个周期的译码，进而也需要暂停 1 个周期的取指
-  E_icode in { IMRMOVQ, IPOPQ } && E_dstM in { d_srcA, d_srcB } ||
-  # 当 ret 指令通过流水线时暂停取指，一直等到 ret 指令得到 W_valM
-  IRET in { D_icode, E_icode, M_icode };
-```
-
-<div grid="~ cols-2 gap-12" relative>
-<div>
-
-![load_use_hazard_solution_stall](./res/image/slides.assets/load_use_hazard_solution_stall.png){.mx-auto}
-
-</div>
-
-<div>
-
-![control_hazard_ret_stall](./res/image/slides.assets/control_hazard_ret_stall.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# 异常处理（气泡 / 暂停）：译码阶段
-
-bubble / stall in decode stage
-
-注意：bubble 和 stall 不能同时为真。
+- 自动识别顺序的、步长为 1 的引用模式
+- 提前将数据块取到高速缓存中，减少访问延迟
+- 提高读吞吐量，特别是在步长较小的情况下效果最佳
 
-
-```hcl
-# 是否暂停流水线寄存器 D？
-# 加载/使用数据冒险
-bool D_stall = E_icode in { IMRMOVQ, IPOPQ } && E_dstM in { d_srcA, d_srcB };
-# 是否向流水线寄存器 D 注入气泡？
-bool D_bubble = 
-  # 分支预测错误
-  (E_icode == IJXX && !e_Cnd) ||
-  # 当 ret 指令通过流水线时暂停 3 次译码阶段，但要求不满足读取/使用数据冒险的条件
-  !(E_icode in { IMRMOVQ, IPOPQ } && E_dstM in { d_srcA, d_srcB }) && IRET in { D_icode, E_icode, M_icode };
-```
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-![control_hazard_jxx_bubble_1](./res/image/slides.assets/control_hazard_jxx_bubble_1.png){.mx-auto}
-
-</div>
-
-<div>
-
-![control_hazard_ret_bubble](./res/image/slides.assets/control_hazard_ret_bubble.png){.mx-auto} 
-
-</div>
-</div>
-
----
-
-# 异常处理（气泡 / 暂停）：执行阶段
-
-bubble / stall in execute stage
-
-注意：bubble 和 stall 不能同时为真。
-
-
-```hcl
-# 是否需要阻塞流水线寄存器 E？
-bool E_stall = 0;
-# 是否向流水线寄存器 E 注入气泡？
-bool E_bubble = 
-  # 错误预测的分支
-  (E_icode == IJXX && !e_Cnd) || 
-  # 负载/使用冒险条件
-  (E_icode in { IMRMOVQ, IPOPQ } && E_dstM in { d_srcA, d_srcB });
-```
-
-<div grid="~ cols-2 gap-12">
-<div>
-
-![control_hazard_jxx_bubble_2](./res/image/slides.assets/control_hazard_jxx_bubble_2.png){.mx-auto}
-
-</div>
-
-<div>
-
-![load_use_hazard_solution_bubble](./res/image/slides.assets/load_use_hazard_solution_bubble.png){.mx-auto}
-
-</div>
-</div>
-
----
-
-# 异常处理（气泡 / 暂停）：访存阶段
-
-bubble / stall in memory stage
-
-注意：bubble 和 stall 不能同时为真。
-
-
-```hcl
-# 是否需要暂停流水线寄存器 M？
-bool M_stall = 0;
-# 是否向流水线寄存器 M 注入气泡？
-# 当异常通过内存阶段时开始插入气泡
-bool M_bubble = m_stat in { SADR, SINS, SHLT } || W_stat in { SADR, SINS, SHLT };
-```
-
----
-
-# 异常处理（气泡 / 暂停）：写回阶段
-
-bubble / stall in writeback stage
-
-注意：bubble 和 stall 不能同时为真。
-
-```hcl
-# 是否需要暂停流水线寄存器 W？
-bool W_stall = W_stat in { SADR, SINS, SHLT };
-# 是否向流水线寄存器 W 注入气泡？
-bool W_bubble = 0;
-```
-
----
-
-# 特殊的控制条件
-
-special control conditions
-
-![special_condition](./res/image/slides.assets/special_condition.png){.mx-auto.h-50}
-
-<div grid="~ cols-2 gap-8" text-sm>
-<div>
-
-组合 A：执行阶段中有一条不选择分支（预测失败）的跳转指令 `JXX`，而译码阶段中有一条 `RET` 指令。
-
-即，`JXX` 指令的跳转目标 `valC` 对应的内存指令是一条 `RET` 指令。
-
 </div>
 
-<div>
+<div col-span-2>
 
-组合 B：包括一个加载 / 使用冒险，其中加载指令设置寄存器 `%rsp`，然后 `RET` 指令用这个寄存器作为源操作数。
+![memory_hill_prefetch](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/memory_hill_prefetch.png)
 
-因为 `RET` 指令需要正确的栈指针 `%rsp` 的值去寻址，才能从栈中弹出返回地址，所以流水线控制逻辑应该将 `RET` 指令阻塞在译码阶段。
-
-</div>
-</div>
-
----
-
-# 特殊的控制条件：组合 A
-
-special control conditions: combination A
-
-![combination_a](./res/image/slides.assets/combination_a.png){.mx-auto.h-40}
-
-
-<div grid="~ cols-2 gap-12" text-sm>
-<div>
-
-组合情况 A 的处理与预测错误的分支相似，只不过在取指阶段是暂停。
-
-当这次暂停结束后，在下一个周期，PC 选择逻辑会选择跳转后面那条指令的地址，而不是预测的程序计数器值。
-
-所以流水线寄存器 F 发生了什么是没有关系的。
-
-<div text-sky-5>
-
-气泡顶掉了 `RET` 指令的继续传递，所以不会发生第二次暂停。
-
-</div>
-
-
-</div>
-
-<div>
-
-
-```hcl
-# 指令应从哪个地址获取
-word f_pc = [
-  # 分支预测错误时，从增量的 PC 取指令
-  # 传递路径：D_valP -> E_valA -> M_valA
-  # 条件跳转指令且条件不满足时
-  M_icode == IJXX && !M_Cnd : M_valA;
-  # RET 指令终于执行到回写阶段时（即过了访存阶段）
-  W_icode == IRET : W_valM;
-  # 默认情况下，使用预测的 PC 值
-  1 : F_predPC;
-];
-```
-
-</div>
-</div>
-
----
-
-# 特殊的控制条件：组合 B
-
-special control conditions: combination B
-
-
-![combination_b](./res/image/slides.assets/combination_b.png){.mx-auto.h-40}
-
-
-<div grid="~ cols-2 gap-12" text-sm>
-<div>
-
-对于取指阶段，遇到加载/使用冒险或 `RET` 指令时，流水线寄存器 F 必须暂停。
-
-对于译码阶段，这里产生了一个冲突，制逻辑会将流水线寄存器 D 的气泡和暂停信号都置为 1。这是不行的。
-
-<div text-sky-5>
-
-我们希望此时只采取针对加载/使用冒险的动作，即暂停。我们通过修改 `D_bubble` 的处理条件来实现这一点。
-
 </div>
-
-
 </div>
-
-<div>
-
 
-```hcl
-# 是否需要注入气泡至流水线寄存器 D
-bool D_bubble =
-  # 错误预测的分支 
-  (E_icode == IJXX && !e_Cnd) || 
-  # 在取指阶段暂停，同时 ret 指令通过流水线
-  # 但不存在加载/使用冒险的条件（此时使用暂停）
-  !(E_icode in { IMRMOVQ, IPOPQ } &&
-   E_dstM in { d_srcA, d_srcB }) &&
-  # IRET 指令在 D、E、M 任何一个阶段
-  IRET in { D_icode, E_icode, M_icode };
-```
-
-</div>
-</div>
 
 ---
 layout: center
-class:
+---
+
+<div>
+  <text class="text-17 font-bold gradient-text">Emphasis
+</text>
+</div>
+
+<style>
+  .gradient-text {
+    background-image: linear-gradient(45deg, #4ec5d4 10%, #146b8c 20%);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+</style>
+
+
+
+
+---
+
+# Outline
+
+- **Memory hierarchy**
+  - Memory hierarchy、局部性、缓存
+  - 各种概念
+    - RAM：SRAM、DRAM，FPM DRAM、EDO DRAM、SDRAM、DDR SDRAM、VRAM
+    - ROM：PROM、EPROM、EEPROM、SSD
+  - Disk：磁盘容量，磁盘操作（$\text{Capacity},T_{xxx}$）
+    - $K,M,G,T$ 的大小问题
+    - DMA传送
+  - SSD：以页为单位读写，以块为单位擦除
+
+
+
+---
+
+# Outline
+
+- **Cache**
+  - general organization：$(S,E,B,m)$，读取方式（图解），读取公式
+    - 直接映射 $E=1$
+    - 组相联 $E\le C/B$
+    - 全相联 $E=C/B$
+  - Cache分析：缓存命中、缓存不命中、缓存替换策略；写命中、写不命中、搭配
+  - 示例Intel Core i7：2023年题目
+  - 局部性 Locality
+
+---
+
+# Memory hierarchy
+
+![image-20231030173059389](./res/image/slides.assets/image-20231030173059389.png){.w-180}
+
 ---
 
 
-<div flex="~ gap-16"  mt-2 justify-center items-center>
 
+# Disk
+
+<br/>
+$$
+\textbf{Capacity} = \frac{\# \text{ bytes}}{\text{sector}} \times \frac{\text{average } \# \text{ sectors}}{\text{track}} \times \frac{\# \text{ tracks}}{\text{surface}} \times \frac{\# \text{ surfaces}}{\text{platter}} \times \frac{\# \text{ platters}}{\text{disk}}
+$$
+
+$$
+T_{\text{access}} = T_{\text{avg seek}} + T_{\text{avg rotation}} + T_{\text{avg transfer}}
+$$
+
+$$
+T_{\text{avg transfer}} = \frac{1}{\text{RPM}} \times \left( \frac{1}{\text{average } \# \text{ sectors/track}} \right) \times \left( \frac{60 \text{ secs}}{1 \text{ min}} \right)
+$$
+
+$$
+T_{\text{max rotation}} = \frac{1}{\text{RPM}} \times \left( \frac{60 \text{ secs}}{1 \text{ min}} \right)
+$$
+
+$$
+T_{\text{avg rotation}} = \frac{1}{2} \times T_{\text{max rotation}}
+$$
+
+$$
+\textbf{DRAM \& SRAM:} \quad K = 2^{10}, \quad M = 2^{20}, \quad G = 2^{30}, \quad T = 2^{40}
+$$
+
+$$
+\textbf{Disk \& network:} \quad K = 10^{3}, \quad M = 10^{6}, \quad G = 10^{9}, \quad T = 10^{12}
+$$
+
+---
+
+# Cache
+
+![image-20231030174155679](./res/image/slides.assets/image-20231030174155679.png){.w-165}
+
+---
+
+# Cache
+
+![image-20231030174211237](./res/image/slides.assets/image-20231030174211237.png){.w-190}
+
+
+
+---
+
+# Optimize
+
+## CPE
+
+- cycles per element
+- 延迟、吞吐量
+- 延迟界限、吞吐量界限
+- 吞吐量界限是程序性能的最终限制
+
+![Clip_2024-10-30_13-51-21](./res/image/slides.assets/Clip_2024-10-30_13-51-21.png){.w-150}
+
+
+
+---
+
+# Optimize
+
+## 数据流图+关键路径
+
+
+<div grid="~ cols-2 gap-2">
+
+<div>
+
+![Clip_2024-10-30_13-51-48](./res/image/slides.assets/Clip_2024-10-30_13-51-48.png)
+
+
+</div>
+
+<div>
+
+
+![Clip_2024-10-30_13-52-02](./res/image/slides.assets/Clip_2024-10-30_13-52-02.png){.w-90}
+
+
+</div>
+</div>
+
+
+
+
+---
+
+# Optimize
+
+## 提高并行度
+
+- 循环展开：`acc = (acc OP data[i]) OP data[i+1]`
+- 多个累计变量：`acc0 = acc0 OP data[i], acc1 = acc1 OP data[i+1]`
+  - $CPE$ 为满，需要执行该操作的所有功能单元的流水线都是满的——**吞吐量界限**
+  - $k\times k$ 循环展开：$k\ge C\cdot L$，延迟$C$，容量$L$
+- 重新结合变换：`acc = acc OP (data[i] OP data[i+1])`
+
+<br/>
+
+## 局限性
+
+- 寄存器溢出
+- 分支预测处罚
+- 不可重排的运算
+
+
+
+---
+layout: center
+---
+
+<div>
+  <text class="text-17 font-bold gradient-text">Homework Review</text>
+</div>
+
+<style>
+  .gradient-text {
+    background-image: linear-gradient(45deg, #4ec5d4 10%, #146b8c 20%);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+</style>
+---
+
+# HW5
+
+$$
+1.\ T_{avg\_transfer} \text{ 的问题，具有模糊性，只要其他没算错，怎么都算对}\\
+2. \text{ 规范一下，本次作业为HW5，从下次开始HW6，我们的序号以次数为准}
+$$
+
+![Clip_2024-10-30_17-05-50](./res/image/slides.assets/Clip_2024-10-30_17-05-50.png){.w-110}
+
+---
+
+# HW5
+
+
+<div grid="~ cols-2 gap-2">
+
+<div>
+
+![Clip_2024-10-30_16-59-54](./res/image/slides.assets/Clip_2024-10-30_16-59-54.png){.w-90}
+
+</div>
+
+<div>
+
+![Clip_2024-10-30_17-00-47](./res/image/slides.assets/Clip_2024-10-30_17-00-47.png){.w-70}
+
+
+</div>
+</div>
+
+
+
+
+
+---
+layout: center
+---
+
+<div>
+  <text class="text-17 font-bold gradient-text">Exercises</text>
+</div>
+
+<style>
+  .gradient-text {
+    background-image: linear-gradient(45deg, #4ec5d4 10%, #146b8c 20%);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+</style>
+
+---
+
+# E1
+
+Questions
+
+某磁盘的旋转速率为 7200RPM，每条磁道平均有 400 扇区，则一个扇区的平均传送时间为
+
+- A. 0.02 ms
+- B. 0.01 ms
+- C. 0.03 ms
+- D. 0.04ms
+
+<div v-click>
+
+答案：A
+
+<div class="text-sm">
+
+$$
+\text{平均传送时间} = \frac{60 \, \text{秒}}{\text{每分钟的旋转次数}}(\text{多少秒转一次}) \times \frac{1}{\text{每条磁道上的扇区数}}(\text{每个扇区平分}) \times 1000 \, \text{毫秒/秒}
+$$
+
+</div>
+
+解析：
+
+$$
+\frac{60 \, \text{秒}}{7200 \, \text{RPM}} \times \frac{1}{400 \, \text{sectors/track}} \times 1000 \, \text{ms/sec} \approx 0.02 \, \text{ms}
+$$
+
+</div>
+
+---
+
+# E2
+
+Questions
+
+<div class="text-sm">
+
+以下关于存储的描述中，正确的是？
+
+- A. 由于基于 SRAM 的内存性能与 CPU 的性能有很大差距，因此现代计算机使用更快的基于 DRAM 的高速缓存，试图弥补 CPU 和内存间性能的差距。
+- B. SSD 相对于旋转磁盘而言具有更好的读性能，但是 SSD 写的速度通常比读的速度慢得多，而且 SSD 比旋转磁盘单位容量的价格更贵，此外 SSD 底层基于 EEPROM 的闪存会磨损。
+- C. 一个有 2 个盘片、10000 个柱面、每条磁道平均有 400 个扇区，每个扇区有 512 个字节的双面磁盘的容量为 8GB。
+- D. 访问一个磁盘扇区的平均时间主要取决于寻道时间和旋转延迟，因此一个旋转速率为 6000RPM、平均寻道时间为 9ms 的磁盘的平均访问时间大约为 19ms。
+- E. SDRAM 兼具 SRAM 和 DRAM 的特点。
+
+<div v-click>
+
+答案：B
+
+- A. 选项中 SRAM 和 DRAM 位置反了
+- C. 选项中，硬盘容量 1GB=$10^9$ Byte，因此容量应该为 8.192GB（回忆：内存及以上存储器使用 2 的幂次，硬盘使用 10 的幂次）
+- D. 选项中，平均旋转延迟为 $0.5\times(60\text{s}/6000\text{RPM})=5\text{ms}$，平均访问时间为 $9\text{ms} + 5\text{ms} = 14\text{ms}$
+- E. SDRAM 和 SRAM 无关，其 S 是 Synchronous 的缩写，表示同步的意思
+
+</div>
+</div>
+
+
+---
+
+# E3
+
+Questions
+
+如果我们希望将原来 4MB 的 cache 调整为 6MB，可以采取的做法是？
+
+- A. 将 $S$ 从 4096 调整为 6144
+- B. 将 $E$ 从 16 调整为 24
+- C. 将 $B$ 从 64 调整为 96
+- D. 以上答案都不对
+
+<div v-click>
+
+答案：B
+
+$S$ 和 $B$ 需要是 2 的 n 次方（因为他们参与地址划分，要得到 $s = \log_2 S$ 和 $b = \log_2 B$），但 $E$ 不需要（行匹配是直接对组里的所有行进行标记（tag）位的匹配）。
+
+![cache_address](./res/image/slides.assets/06-Memory-Hierarchy-and-Cache/cache_address.png){.w-80.mx-auto}
+
+</div>
+
+<!-- 但是感觉有点不对，硬件结构变了吗 -->
+
+---
+
+# E4
+
+Questions
+
+<div class="text-sm">
+
+
+现在考虑另外一个计算机系统。在该系统中，存储器地址为 32 位，并采用如下的 cache：
+
+| Cache datasize | Cache block size | Cache mode |
+| -------------- | ---------------- | ---------- |
+| 32 KiB         | 8 Bytes          | 直接映射   |
+
+此 cache 至少要占用多少字节？ (提示：datasize + (valid bit size + tag size) * blocks)
+
+<div v-click>
+
+答案：
+
+1. 块大小 $B$ 为 $8 \text{Bytes}$，所以 $b=\log_2 8 = 3$
+2. 缓存块总共有 $C/B=32\text{KiB} / 8\text{Byte} = 4096$ 个
+3. 因为是直接映射，所以行数 $E=1$，组数 $S=\frac{C}{B\times E}=4096$，且 $s=\log_2 4096 = 12$
+4. 因为是 32 位地址，所以 $m=32$，标记位 $t = m - s - b = 32 - 12 - 3 = 17$
+5. 所以：
+<button @click="$nav.go(23)">💡</button>
+
+$$
+\text{总大小} = \text{数据大小} + (\text{有效位大小} + \text{标记位大小}) \times \text{块数} = 32 \times 1024 + (1 + 17) \times 4096 / 8 = 41984 \text{bytes}
+$$
+
+
+</div>
+
+
+</div>
+
+
+
+---
+layout: center
+---
+
+<div>
+  <text class="text-17 font-bold gradient-text">Notices</text>
+</div>
+
+<style>
+  .gradient-text {
+    background-image: linear-gradient(45deg, #4ec5d4 10%, #146b8c 20%);
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+</style>
+---
+
+# 2023-Midterm
+
+> - 我的相关知识点梳理（参考）：[ICS-2023-Midterm](https://github.com/Yaenday/WalkerCH-ICS-Slides/blob/main/res/document/ICS-2023-Midterm.html)
+
+![Clip_2024-10-30_17-15-59](./res/image/slides.assets/Clip_2024-10-30_17-15-59.png){.w-170}
+
+---
+layout: center
+---
+
+<div flex="~ gap-20"  mt-2 justify-center items-center>
 
 <div  w-fit h-fit mb-2>
 
 # THANKS
 
-Made by Arthals with ❤️ ~~and hair~~ {.mb-4}
+Made by WalkerCH 
 
-[Blog](https://arthals.ink/) · [GitHub](https://github.com/zhuozhiyongde) · [Bilibili](https://space.bilibili.com/203396427)
+changxinhai@stu.pku.edu.cn
+
+<p class="text-gray-40">
+  <font size = '3'>
+    Reference: [Weicheng Lin]'s presentation.<br>
+    Reference: [Arthals]'s templates and content.
+  </font>
+</p>
 
 </div>
 
-![wechat](/wechat.jpg){.w-40.rounded-md}
+![wechat](./res/image/slides.assets/wechat.jpg){.w-50.rounded-md}
 
 </div>
