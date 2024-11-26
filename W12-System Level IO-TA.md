@@ -115,6 +115,8 @@ layout: center
 
 - [Note Link]()
 
+![PixPin_2024-11-26_15-55-43](./res/image/slides.assets/PixPin_2024-11-26_15-55-43.png)
+
 
 ---
 layout: center
