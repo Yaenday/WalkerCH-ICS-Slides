@@ -114,7 +114,9 @@ layout: center
 
 # Notes
 
-- [Note Link]()
+- [Note Link](https://github.com/Yaenday/WalkerCH-ICS-Slides/blob/main/res/note/Concurrent-Programming%20Note.html)
+
+![PixPin_2024-11-26_16-07-28](./res/image/slides.assets/PixPin_2024-11-26_16-07-28.png)
 
 
 ---

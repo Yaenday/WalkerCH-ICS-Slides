@@ -115,7 +115,9 @@ layout: center
 
 # Notes
 
-- [Note Link]()
+- [Note Link](https://github.com/Yaenday/WalkerCH-ICS-Slides/blob/main/res/note/Virtual-Memory%20Note.html)
+
+![PixPin_2024-11-26_16-06-14](./res/image/slides.assets/PixPin_2024-11-26_16-06-14.png)
 
 
 ---
