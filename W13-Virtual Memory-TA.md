@@ -69,33 +69,6 @@ coverBackgroundUrl: /res/image/cover/cover_13.jpg
 layout: center
 ---
 
-<div style="text-align: center;">
-  <text class="text-17 font-bold gradient-text">Knowledge Review</text>
-  <br />
-  <text class="text-5 font-bold">This part is cited from Arthals</text>
-</div>
-
-<style>
-  .gradient-text {
-    background-image: linear-gradient(45deg, #4ec5d4 10%, #146b8c 20%);
-    -webkit-background-clip: text;
-    color: transparent;
-  }
-</style>
-
----
-
-# Example {.text-2xl}
-
-<div class="absolute bottom-4 right-4 text-gray-500 text-xs">
-  This slide is cited from Arthals.
-</div>
-
-
----
-layout: center
----
-
 <div>
   <text class="text-17 font-bold gradient-text">Emphasis
 </text>
@@ -117,7 +90,7 @@ layout: center
 
 - [Note Link](https://github.com/Yaenday/WalkerCH-ICS-Slides/blob/main/res/note/Virtual-Memory%20Note.html)
 
-![PixPin_2024-11-26_16-06-14](./res/image/slides.assets/PixPin_2024-11-26_16-06-14.png)
+![PixPin_2024-11-26_16-06-14](./res/image/slides.assets/PixPin_2024-11-26_16-06-14.png){.w-150}
 
 
 ---
