@@ -6,7 +6,7 @@ theme: academic
 # background: https://cover.sli.dev
 highlighter: shiki
 # some information about your slides (markdown enabled)
-title: 13-Virtual Memory
+title: 14-Network Programming
 info: |
   ICS 2024 Fall Slides
   Presented by WalkerCH
@@ -21,11 +21,11 @@ transition: fade-out
 # enable MDC Syntax: https://sli.dev/features/mdc
 mdc: true
 layout: cover
-coverBackgroundUrl: /res/image/cover/cover_13.jpg
+coverBackgroundUrl: /res/image/cover/cover_14.jpg
 
 ---
 
-# Virtual Memory {.font-bold}
+# Network Programming {.font-bold}
 
 <p class="text-gray-100">
 <font size = '5'>
@@ -65,6 +65,7 @@ coverBackgroundUrl: /res/image/cover/cover_13.jpg
 <Toc columns="4" minDepth="1"></Toc> -->
 
 
+
 ---
 layout: center
 ---
@@ -88,9 +89,9 @@ layout: center
 
 # Notes
 
-- [Note Link](https://github.com/Yaenday/WalkerCH-ICS-Slides/blob/main/res/note/Virtual-Memory%20Note.html)
+- [Note Link](https://github.com/Yaenday/WalkerCH-ICS-Slides/blob/main/res/note/Network-Programming%20Note.html)
 
-![PixPin_2024-11-26_16-06-14](./res/image/slides.assets/PixPin_2024-11-26_16-06-14.png){.w-150}
+![PixPin_2024-11-26_16-06-56](./res/image/slides.assets/PixPin_2024-11-26_16-06-56.png){.w-150}
 
 
 ---
@@ -109,6 +110,11 @@ layout: center
   }
 </style>
 
+---
+
+# HW10
+
+![PixPin_2024-11-27_20-45-32](./res/image/slides.assets/PixPin_2024-11-27_20-45-32.png){.w-120}
 
 
 ---
@@ -132,200 +138,189 @@ layout: center
 
 # E1
 
-![image-20241017201736242](./res/image/slides.assets/image-20241017201736242.png)
+![image-20241017202403653](./res/image/slides.assets/image-20241017202403653.png){.w-180}
 
-<!-- ![image-20241017201738762](./res/image/slides.assets/image-20241017201738762.png){.w-180} -->
+<!-- ![image-20241017202406941](./res/image/slides.assets/image-20241017202406941.png) -->
 
 ---
 
 
 # E1
 
-![image-20241017201736242](./res/image/slides.assets/image-20241017201736242.png)
+![image-20241017202403653](./res/image/slides.assets/image-20241017202403653.png){.w-180}
 
-![image-20241017201738762](./res/image/slides.assets/image-20241017201738762.png){.w-180}
-
----
-
-# E2
-
-![image-20241017201741157](./res/image/slides.assets/image-20241017201741157.png){.w-110}
+![image-20241017202406941](./res/image/slides.assets/image-20241017202406941.png)
 
 ---
 
 # E2
 
-![image-20241017201744520](./res/image/slides.assets/image-20241017201744520.png)
+![image-20241017202412849](./res/image/slides.assets/image-20241017202412849.png){.w-170}
+
+<!-- ![image-20241017202415153](./res/image/slides.assets/image-20241017202415153.png) -->
+
+---
+
+# E2
+
+![image-20241017202412849](./res/image/slides.assets/image-20241017202412849.png){.w-170}
+
+![image-20241017202415153](./res/image/slides.assets/image-20241017202415153.png){.w-170}
 
 ---
 
 # E3
 
-![image-20241017201747842](./res/image/slides.assets/image-20241017201747842.png)
+![image-20241017202418169](./res/image/slides.assets/image-20241017202418169.png)
 
-<!-- ![image-20241017201752704](./res/image/slides.assets/image-20241017201752704.png) -->
+<!-- ![image-20241017202420441](./res/image/slides.assets/image-20241017202420441.png){.w-150} -->
 
 ---
 
 # E3
 
-![image-20241017201747842](./res/image/slides.assets/image-20241017201747842.png)
+![image-20241017202418169](./res/image/slides.assets/image-20241017202418169.png)
 
-![image-20241017201752704](./res/image/slides.assets/image-20241017201752704.png)
-
----
-
-# E4
-
-![image-20241017201756039](./res/image/slides.assets/image-20241017201756039.png)
-
-<!-- ![image-20241017201810535](./res/image/slides.assets/image-20241017201810535.png) -->
+![image-20241017202420441](./res/image/slides.assets/image-20241017202420441.png){.w-150}
 
 ---
 
 # E4
 
-![image-20241017201756039](./res/image/slides.assets/image-20241017201756039.png)
+![image-20241023100852833](./res/image/slides.assets/image-20241023100852833.png)
 
-![image-20241017201810535](./res/image/slides.assets/image-20241017201810535.png)
+<!-- ![image-20241023100856025](./res/image/slides.assets/image-20241023100856025.png){.w-100} -->
+
+---
+
+# E4
+
+![image-20241023100852833](./res/image/slides.assets/image-20241023100852833.png)
+
+![image-20241023100856025](./res/image/slides.assets/image-20241023100856025.png){.w-100}
 
 ---
 
 # E5
 
-![image-20241017201813470](./res/image/slides.assets/image-20241017201813470.png)
+![image-20241023100902786](./res/image/slides.assets/image-20241023100902786.png)
 
-<!-- ![image-20241017201815827](./res/image/slides.assets/image-20241017201815827.png) -->
+<!-- ![image-20241023100906769](./res/image/slides.assets/image-20241023100906769.png) -->
+
 
 ---
 
 # E5
 
-![image-20241017201813470](./res/image/slides.assets/image-20241017201813470.png)
+![image-20241023100902786](./res/image/slides.assets/image-20241023100902786.png)
 
-![image-20241017201815827](./res/image/slides.assets/image-20241017201815827.png)
+![image-20241023100906769](./res/image/slides.assets/image-20241023100906769.png)
+
 
 ---
 
 # E6
 
-![image-20241017201818707](./res/image/slides.assets/image-20241017201818707.png)
+![image-20241023100911262](./res/image/slides.assets/image-20241023100911262.png)
 
-<!-- ![image-20241017201821087](./res/image/slides.assets/image-20241017201821087.png) -->
+<!-- ![image-20241023100923948](./res/image/slides.assets/image-20241023100923948.png) -->
 
 ---
 
 # E6
 
-![image-20241017201818707](./res/image/slides.assets/image-20241017201818707.png)
+![image-20241023100911262](./res/image/slides.assets/image-20241023100911262.png)
 
-![image-20241017201821087](./res/image/slides.assets/image-20241017201821087.png)
-
----
-
-# E7
-
-![image-20241017201824023](./res/image/slides.assets/image-20241017201824023.png)
-
-<!-- ![image-20241017201826280](./res/image/slides.assets/image-20241017201826280.png) -->
-
+![image-20241023100923948](./res/image/slides.assets/image-20241023100923948.png)
 
 ---
 
 # E7
 
-![image-20241017201824023](./res/image/slides.assets/image-20241017201824023.png)
+![image-20241023100929358](./res/image/slides.assets/image-20241023100929358.png)
 
-![image-20241017201826280](./res/image/slides.assets/image-20241017201826280.png)
+<!-- ![image-20241023100933279](./res/image/slides.assets/image-20241023100933279.png) -->
+
+---
+
+# E7
+
+![image-20241023100929358](./res/image/slides.assets/image-20241023100929358.png)
+
+![image-20241023100933279](./res/image/slides.assets/image-20241023100933279.png)
 
 ---
 
 # E8
 
-![image-20241017201829433](./res/image/slides.assets/image-20241017201829433.png)
+![image-20241023100947877](./res/image/slides.assets/image-20241023100947877.png)
 
-<!-- ![image-20241017201832315](./res/image/slides.assets/image-20241017201832315.png) -->
+<!-- ![image-20241023100952104](./res/image/slides.assets/image-20241023100952104.png) -->
 
 ---
 
 # E8
 
-![image-20241017201829433](./res/image/slides.assets/image-20241017201829433.png)
+![image-20241023100947877](./res/image/slides.assets/image-20241023100947877.png)
 
-![image-20241017201832315](./res/image/slides.assets/image-20241017201832315.png)
----
-
-# E9
-
-![image-20241017201835058](./res/image/slides.assets/image-20241017201835058.png)
-
-<!-- ![image-20241017201837714](./res/image/slides.assets/image-20241017201837714.png) -->
+![image-20241023100952104](./res/image/slides.assets/image-20241023100952104.png)
 
 ---
 
 # E9
 
-![image-20241017201835058](./res/image/slides.assets/image-20241017201835058.png)
+![image-20241023100955891](./res/image/slides.assets/image-20241023100955891.png)
 
-![image-20241017201837714](./res/image/slides.assets/image-20241017201837714.png)
+---
+
+# E9
+
+![image-20241023100958453](./res/image/slides.assets/image-20241023100958453.png)
 
 ---
 
 # E10
 
-![image-20241017201840532](./res/image/slides.assets/image-20241017201840532.png)
+![image-20241023101001228](./res/image/slides.assets/image-20241023101001228.png)
 
-<!-- ![image-20241017201843454](./res/image/slides.assets/image-20241017201843454.png) -->
+<!-- ![image-20241023101003591](./res/image/slides.assets/image-20241023101003591.png) -->
 
 ---
 
 # E10
 
-![image-20241017201840532](./res/image/slides.assets/image-20241017201840532.png)
+![image-20241023101001228](./res/image/slides.assets/image-20241023101001228.png)
 
-![image-20241017201843454](./res/image/slides.assets/image-20241017201843454.png)
-
----
-
-# E11
-
-<div grid="~ cols-2 gap-2">
-
-<div>
-
-![image-20241017201846440](./res/image/slides.assets/image-20241017201846440.png){.w-70}
-
-</div>
-
-<div>
-
-![image-20241017201850546](./res/image/slides.assets/image-20241017201850546.png){.w-70}
-
-
-</div>
-</div>
+![image-20241023101003591](./res/image/slides.assets/image-20241023101003591.png)
 
 ---
 
 # E11
 
+
 <div grid="~ cols-2 gap-2">
 
 <div>
 
-![image-20241017201856153](./res/image/slides.assets/image-20241017201856153.png)
+![image-20241023101006550](./res/image/slides.assets/image-20241023101006550.png){.w-70}
 
 
 </div>
 
 <div>
 
-![image-20241017201900017](./res/image/slides.assets/image-20241017201900017.png)
+![image-20241023101010844](./res/image/slides.assets/image-20241023101010844.png){.w-80}
 
 
 </div>
 </div>
 
+---
+
+# E11
+
+
+![image-20241023101018127](./res/image/slides.assets/image-20241023101018127.png)
 
 ---
 
@@ -335,73 +330,18 @@ layout: center
 
 <div>
 
-![image-20241017201912302](./res/image/slides.assets/image-20241017201912302.png)
+![image-20241023101042302](./res/image/slides.assets/image-20241023101042302.png)
+
 
 </div>
 
 <div>
 
-<!-- ![image-20241017201915187](./res/image/slides.assets/image-20241017201915187.png) -->
+![image-20241023101045725](./res/image/slides.assets/image-20241023101045725.png)
+
 
 </div>
 </div>
-
-
-
----
-
-# E12
-
-<div grid="~ cols-2 gap-2">
-
-<div>
-
-![image-20241017201912302](./res/image/slides.assets/image-20241017201912302.png)
-
-</div>
-
-<div>
-
-![image-20241017201915187](./res/image/slides.assets/image-20241017201915187.png)
-
-</div>
-</div>
-
-
-
-
-
----
-
-# E1
-
-![image-20241023100754916](./res/image/slides.assets/image-20241023100754916.png)
-
-<!-- ![image-20241023100757991](./res/image/slides.assets/image-20241023100757991.png) -->
-
----
-
-# E1
-
-![image-20241023100754916](./res/image/slides.assets/image-20241023100754916.png)
-
-![image-20241023100757991](./res/image/slides.assets/image-20241023100757991.png)
-
----
-
-# E2
-
-![image-20241023100807253](./res/image/slides.assets/image-20241023100807253.png){.w-105}
-
-<!-- ![image-20241023100810629](./res/image/slides.assets/image-20241023100810629.png){.w-50} -->
-
----
-
-# E2
-
-![image-20241023100807253](./res/image/slides.assets/image-20241023100807253.png){.w-105}
-
-![image-20241023100810629](./res/image/slides.assets/image-20241023100810629.png){.w-50}
 
 ---
 layout: center
