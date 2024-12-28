@@ -20,3 +20,15 @@ Knowledge部分大多基于[Arthals-ICS-Slides](https://github.com/zhuozhiyongde
    └── document         # 其他相关文档
 
 ```
+
+## 更多信息
+
+更多资料可见 **北大网盘**：
+
+```markdown
+https://disk.pku.edu.cn/link/AA7A050209F4D9440AB9CB1C79E6315680
+文件夹名：ICS Seminar 13
+有效期限：2035-01-31 00:00
+```
+
+如有任何问题，您可以选择邮箱联系我：*changxinhai@stu.pku.edu.cn*
