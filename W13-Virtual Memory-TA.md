@@ -39,7 +39,6 @@ coverBackgroundUrl: /res/image/cover/cover_13.jpg
   </span>
 </div>
 
-
 <div class="abs-br m-6 flex gap-2">
   <button @click="$slidev.nav.openInEditor()" title="Open in Editor" class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">
     <carbon:edit />
@@ -57,15 +56,14 @@ coverBackgroundUrl: /res/image/cover/cover_13.jpg
   }
 </style>
 
-
 <!-- ---
 
 # 目录
 
 <Toc columns="4" minDepth="1"></Toc> -->
 
-
 ---
+
 layout: center
 ---
 
@@ -82,8 +80,6 @@ layout: center
   }
 </style>
 
-
-
 ---
 
 # Notes
@@ -92,8 +88,8 @@ layout: center
 
 ![PixPin_2024-11-26_16-06-14](./res/image/slides.assets/PixPin_2024-11-26_16-06-14.png){.w-150}
 
-
 ---
+
 layout: center
 ---
 
@@ -109,9 +105,15 @@ layout: center
   }
 </style>
 
+---
+
+# HW9
+
+![PixPin_2024-11-27_20-45-32](./res/image/slides.assets/PixPin_2024-11-27_20-45-32.png){.w-120}
 
 
 ---
+
 layout: center
 ---
 
@@ -129,7 +131,6 @@ layout: center
 
 ---
 
-
 # E1
 
 ![image-20241017201736242](./res/image/slides.assets/image-20241017201736242.png)
@@ -137,7 +138,6 @@ layout: center
 <!-- ![image-20241017201738762](./res/image/slides.assets/image-20241017201738762.png){.w-180} -->
 
 ---
-
 
 # E1
 
@@ -229,7 +229,6 @@ layout: center
 
 <!-- ![image-20241017201826280](./res/image/slides.assets/image-20241017201826280.png) -->
 
-
 ---
 
 # E7
@@ -301,7 +300,6 @@ layout: center
 
 ![image-20241017201850546](./res/image/slides.assets/image-20241017201850546.png){.w-70}
 
-
 </div>
 </div>
 
@@ -315,17 +313,14 @@ layout: center
 
 ![image-20241017201856153](./res/image/slides.assets/image-20241017201856153.png)
 
-
 </div>
 
 <div>
 
 ![image-20241017201900017](./res/image/slides.assets/image-20241017201900017.png)
 
-
 </div>
 </div>
-
 
 ---
 
@@ -346,8 +341,6 @@ layout: center
 </div>
 </div>
 
-
-
 ---
 
 # E12
@@ -366,10 +359,6 @@ layout: center
 
 </div>
 </div>
-
-
-
-
 
 ---
 
@@ -404,6 +393,7 @@ layout: center
 ![image-20241023100810629](./res/image/slides.assets/image-20241023100810629.png){.w-50}
 
 ---
+
 layout: center
 ---
 
@@ -419,7 +409,6 @@ layout: center
   }
 </style>
 
-
 <!-- ---
 
 # col2
@@ -428,17 +417,15 @@ layout: center
 
 <div>
 
-
 </div>
 
 <div>
 
-
 </div>
 </div> -->
 
-
 ---
+
 layout: center
 ---
 
@@ -448,9 +435,9 @@ layout: center
 
 # THANKS
 
-Made by WalkerCH 
+Made by WalkerCH
 
-changxinhai@stu.pku.edu.cn
+<changxinhai@stu.pku.edu.cn>
 
 <p class="text-gray-40">
   <font size = '3'>

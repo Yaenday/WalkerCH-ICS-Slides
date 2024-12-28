@@ -64,34 +64,6 @@ coverBackgroundUrl: /res/image/cover/cover_15.jpg
 
 <Toc columns="4" minDepth="1"></Toc> -->
 
-
----
-layout: center
----
-
-<div style="text-align: center;">
-  <text class="text-17 font-bold gradient-text">Knowledge Review</text>
-  <br />
-  <text class="text-5 font-bold">This part is cited from Arthals</text>
-</div>
-
-<style>
-  .gradient-text {
-    background-image: linear-gradient(45deg, #4ec5d4 10%, #146b8c 20%);
-    -webkit-background-clip: text;
-    color: transparent;
-  }
-</style>
-
----
-
-# Example {.text-2xl}
-
-<div class="absolute bottom-4 right-4 text-gray-500 text-xs">
-  This slide is cited from Arthals.
-</div>
-
-
 ---
 layout: center
 ---
@@ -134,6 +106,14 @@ layout: center
     color: transparent;
   }
 </style>
+
+
+
+---
+
+# HW11
+
+![PixPin_2024-11-27_20-45-32](./res/image/slides.assets/PixPin_2024-11-27_20-45-32.png){.w-120}
 
 
 

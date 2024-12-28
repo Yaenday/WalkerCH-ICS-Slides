@@ -5,3 +5,18 @@
 基于 [Slidev](https://sli.dev/) 构建。（global）
 
 Knowledge部分大多基于[Arthals-ICS-Slides](https://github.com/zhuozhiyongde/Arthals-ICS-Slides/tree/main)实现，感谢Arthals的分享。
+
+## 目录说明
+
+```shell
+
+├── README.md           # 本文件
+├── WXX-XX-TA.md        # 课程Slide
+├── PDF version         # 课程Slide的PDF版本
+└── res
+   ├── image            # 图片资源
+   ├── note             # 后半学期课程笔记
+   ├── test             # 后半学期题集
+   └── document         # 其他相关文档
+
+```
